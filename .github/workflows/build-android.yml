@@ -25,35 +25,30 @@ jobs:
         with:
           node-version: 18
       
-      # Masuk folder INDASH, lalu install
-      - name: Install Ionic & Dependencies
+      - name: Install Dependencies
         run: |
           cd INDASH
           npm install -g @ionic/cli
           npm install
 
-      # Masuk folder INDASH, lalu build web
       - name: Build Ionic Web
         run: |
           cd INDASH
           ionic build --prod
 
-      # Masuk folder INDASH, lalu sync capacitor
       - name: Cap Sync
         run: |
           cd INDASH
           npx cap sync android
 
-      # Masuk folder android (di dalam INDASH), lalu build APK
-      - name: Build APK via Gradle
+      - name: Build APK
         run: |
           cd INDASH/android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      # Upload hasil APK (Path lengkap harus sesuai)
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # <-- PERBAIKAN V4 DI SINI
         with:
           name: app-debug
           path: INDASH/android/app/build/outputs/apk/debug/app-debug.apk
