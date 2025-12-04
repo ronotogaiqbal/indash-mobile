@@ -3,54 +3,58 @@ name: Build Android APK
 on:
   push:
     branches:
-      - main  # Trigger build setiap push ke branch main
+      - main
 
 jobs:
   build:
     name: Build APK
     runs-on: ubuntu-latest
 
+    # [PENTING] Ini menyuruh robot untuk "cd INDASH" secara otomatis
+    # untuk semua perintah di bawah ini
+    defaults:
+      run:
+        working-directory: ./INDASH
+
     steps:
-      # 1. Ambil kodingan dari repo
       - name: Checkout source
         uses: actions/checkout@v3
 
-      # 2. Siapkan Java (Dibutuhkan untuk Android Build)
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. Siapkan Node.js & Ionic
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
       
+      # Karena sudah ada 'working-directory' di atas,
+      # perintah ini otomatis jalan di dalam folder INDASH
       - name: Install Ionic & Dependencies
         run: |
           npm install -g @ionic/cli
           npm install
 
-      # 4. Build web asset (Angular build)
       - name: Build Ionic Web
         run: ionic build --prod
 
-      # 5. Sinkronisasi ke folder Android
       - name: Cap Sync
         run: npx cap sync android
 
-      # 6. Build APK (Debug version)
+      # Masuk ke folder android (relatif dari INDASH)
       - name: Build APK via Gradle
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      # 7. Upload APK agar bisa didownload user
+      # Upload hasil APK
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
           name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          # Path lengkap harus ditulis dari root
+          path: INDASH/android/app/build/outputs/apk/debug/app-debug.apk
