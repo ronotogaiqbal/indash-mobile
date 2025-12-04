@@ -10,12 +10,6 @@ jobs:
     name: Build APK
     runs-on: ubuntu-latest
 
-    # [PENTING] Ini menyuruh robot untuk "cd INDASH" secara otomatis
-    # untuk semua perintah di bawah ini
-    defaults:
-      run:
-        working-directory: ./INDASH
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
@@ -31,30 +25,35 @@ jobs:
         with:
           node-version: 18
       
-      # Karena sudah ada 'working-directory' di atas,
-      # perintah ini otomatis jalan di dalam folder INDASH
+      # Masuk folder INDASH, lalu install
       - name: Install Ionic & Dependencies
         run: |
+          cd INDASH
           npm install -g @ionic/cli
           npm install
 
+      # Masuk folder INDASH, lalu build web
       - name: Build Ionic Web
-        run: ionic build --prod
+        run: |
+          cd INDASH
+          ionic build --prod
 
+      # Masuk folder INDASH, lalu sync capacitor
       - name: Cap Sync
-        run: npx cap sync android
+        run: |
+          cd INDASH
+          npx cap sync android
 
-      # Masuk ke folder android (relatif dari INDASH)
+      # Masuk folder android (di dalam INDASH), lalu build APK
       - name: Build APK via Gradle
         run: |
-          cd android
+          cd INDASH/android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      # Upload hasil APK
+      # Upload hasil APK (Path lengkap harus sesuai)
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
           name: app-debug
-          # Path lengkap harus ditulis dari root
           path: INDASH/android/app/build/outputs/apk/debug/app-debug.apk
