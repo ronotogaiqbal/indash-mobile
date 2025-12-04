@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "lahan_122410",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_LAHAN": "1224102017001" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 97.20275385, 1.39003414 ], [ 97.2014989, 1.38980436 ], [ 97.20326724, 1.38862676 ], [ 97.20365228, 1.38910785 ], [ 97.20451506, 1.38900733 ], [ 97.20398741, 1.39019929 ], [ 97.20275385, 1.39003414 ] ] ] } }
+]
+}

@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "lahan_327302",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_LAHAN": "3273021004001" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 107.61764912, -6.87964471 ], [ 107.617031, -6.879484 ], [ 107.61688178, -6.87995517 ], [ 107.61753916, -6.8801174 ], [ 107.61764912, -6.87964471 ] ] ] } }
+]
+}

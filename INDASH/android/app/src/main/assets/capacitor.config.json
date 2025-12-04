@@ -1,0 +1,8 @@
+{
+	"appId": "id.brmpkementan.indash",
+	"appName": "INDASH",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https"
+	}
+}

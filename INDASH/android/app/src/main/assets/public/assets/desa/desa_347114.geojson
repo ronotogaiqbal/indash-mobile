@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "desa_347114",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_DESA": "3471141002" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 110.400802, -7.820579 ], [ 110.393362, -7.813807 ], [ 110.39014, -7.825119 ], [ 110.3994591, -7.82788847 ], [ 110.400802, -7.820579 ] ] ] } },
+{ "type": "Feature", "properties": { "ID_DESA": "3471141001" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 110.400802, -7.820579 ], [ 110.40226045, -7.80243264 ], [ 110.39752161, -7.80225037 ], [ 110.393362, -7.813807 ], [ 110.400802, -7.820579 ] ] ] } }
+]
+}

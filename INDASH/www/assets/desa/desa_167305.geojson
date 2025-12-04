@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "desa_167305",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_DESA": "1673051009" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 102.87651875, -3.28924497 ], [ 102.87557161, -3.29656383 ], [ 102.88314001, -3.29855339 ], [ 102.88516249, -3.29124059 ], [ 102.87651875, -3.28924497 ] ] ] } }
+]
+}
