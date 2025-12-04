@@ -1,0 +1,881 @@
+.left-content {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.right-content {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+ion-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+ion-tabs ion-tab {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.monitoring-container {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  background-color: #f5f5f5;
+
+  .tab-content-title {
+    color: #2d5016;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #2d5016;
+  }
+}
+
+ion-tabs ion-tab ion-card {
+  margin-bottom: 12px;
+}
+
+ion-tabs ion-tab ion-card ion-card-content {
+  overflow-x: hidden;
+}
+
+ion-tab-bar {
+  background-color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+  }
+}
+
+ion-tab-button {
+  background-color: rgba(255, 255, 255, 0);
+  flex: 0 0 auto;
+  min-width: fit-content;
+  max-width: none;
+}
+
+// Chart container for landscape charts (Fase Padi)
+.chart-container {
+  width: 100%;
+  overflow-x: hidden;
+  border: 3px solid #2d5016;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+  }
+}
+
+// Chart container for portrait charts (Proyeksi Curah Hujan)
+.chart-container-portrait {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow-x: hidden;
+  border: 3px solid #2d5016;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 250px !important;
+  }
+}
+
+.metrics-grid {
+  margin-bottom: 8px;
+}
+
+.metrics-grid ion-card {
+  margin: 4px;
+  text-align: center;
+}
+
+.metric-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.metric-card ion-card-header {
+  padding-bottom: 8px;
+}
+
+.metric-card ion-card-content {
+  padding-top: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+// Left panel monitoring card styling
+.left-content ion-progress-bar {
+  margin-bottom: 12px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.left-content ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+}
+
+.left-content ion-item ion-label p {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+// ============================================================================
+// TAB PERENCANAAN TANAM STYLING
+// ============================================================================
+
+.planning-container {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  background-color: #f5f5f5;
+
+  .tab-content-title {
+    color: #2d5016;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #2d5016;
+  }
+}
+
+.section-card {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,240,240,0.95));
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
+
+.section-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-icon {
+    font-size: 1.3em;
+  }
+}
+
+// Water status badge styling
+.water-status-badge {
+  margin-bottom: 15px;
+  text-align: center;
+
+  ion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    ion-icon {
+      font-size: 1.2em;
+    }
+  }
+}
+
+.water-progress-container,
+.loss-progress-container {
+  margin: 15px 0;
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    color: var(--ion-color-medium);
+    font-weight: 500;
+  }
+
+  ion-progress-bar {
+    height: 12px;
+    border-radius: 6px;
+  }
+}
+
+// Alsintan section styling
+.alsintan-section {
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .alsintan-phase {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    margin: 0 0 8px 0;
+    padding-left: 8px;
+    border-left: 3px solid var(--ion-color-primary);
+  }
+
+  .alsintan-subphase {
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    margin: 12px 0 8px 16px;
+    padding-left: 8px;
+    border-left: 2px solid var(--ion-color-medium);
+  }
+
+  ion-list {
+    padding: 0;
+  }
+}
+
+// List item styling for planning tab
+.section-card ion-list {
+  background: transparent;
+
+  ion-item {
+    --background: rgba(255, 255, 255, 0.8);
+    --border-color: rgba(0, 0, 0, 0.08);
+    margin-bottom: 1px;
+
+    &.ion-color-light {
+      --background: rgba(var(--ion-color-light-rgb), 0.3);
+      font-weight: 600;
+    }
+
+    &.ion-color-success {
+      --background: rgba(var(--ion-color-success-rgb), 0.15);
+    }
+
+    &.ion-color-warning {
+      --background: rgba(var(--ion-color-warning-rgb), 0.15);
+    }
+
+    &.ion-color-danger {
+      --background: rgba(var(--ion-color-danger-rgb), 0.15);
+    }
+  }
+
+  ion-item ion-label h3 {
+    font-size: 1em;
+    margin-bottom: 4px;
+  }
+
+  ion-item ion-label p {
+    font-size: 0.85em;
+    color: var(--ion-color-medium);
+    margin-top: 4px;
+  }
+
+  ion-item ion-note {
+    font-size: 1em;
+  }
+}
+
+// Badge styling for crop types
+ion-badge {
+  padding: 6px 12px;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+// Icon styling in lists
+.section-card ion-item ion-icon[slot="start"] {
+  margin-right: 12px;
+  font-size: 1.5em;
+}
+
+// ============================================================================
+// CONSOLIDATED LEFT PANEL STYLING
+// ============================================================================
+
+.consolidated-left-panel {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+
+  .main-panel-header {
+    background-color: transparent;
+    padding: 12px 16px;
+    margin: 0;
+  }
+
+  .main-panel-title {
+    color: #2d5016;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #2d5016;
+  }
+
+  ion-card-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .info-section {
+    margin-bottom: 24px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #333333;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+}
+
+// ============================================================================
+// RESPONSIVE APP TITLE
+// ============================================================================
+
+.app-main-title {
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: center;
+  font-weight: 600;
+
+  @media (min-width: 576px) {
+    font-size: 16px;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 18px;
+  }
+
+  @media (min-width: 992px) {
+    font-size: 20px;
+  }
+}
+
+// ============================================================================
+// TAB CONTENT TITLE STYLING
+// ============================================================================
+
+.tab-content {
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+
+  .tab-content-title {
+    color: #2d5016; // Dark green
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #2d5016;
+  }
+}
+
+// ============================================================================
+// MOBILE SPECIFIC STYLES
+// ============================================================================
+
+// Mobile Info FAB button
+.mobile-info-fab {
+  z-index: 9999;
+  margin-top: 8px;
+  margin-left: 8px;
+
+  ion-fab-button {
+    --background: #2d5016;
+    --background-activated: #1e3a0f;
+    --box-shadow: 0 3px 8px rgba(45, 80, 22, 0.4);
+  }
+}
+
+// Mobile Info Modal content
+.mobile-info-content {
+  --background: #f5f5f5;
+
+  .mobile-card {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+// Mobile bottom sheet adjustments
+.mobile-bottom-sheet {
+  z-index: 10000;
+
+  .right-content {
+    height: 100%;
+  }
+
+  ion-tabs {
+    height: 100%;
+  }
+
+  ion-tab {
+    height: calc(100% - 56px); // Account for tab bar
+  }
+
+  // Compact tab bar for mobile
+  ion-tab-bar {
+    height: 56px;
+
+    ion-tab-button {
+      font-size: 10px;
+
+      ion-icon {
+        font-size: 20px;
+      }
+
+      ion-label {
+        font-size: 10px;
+        margin-top: 2px;
+      }
+    }
+  }
+}
+
+// Mobile-specific responsive adjustments
+@media (max-width: 767px) {
+  // Header adjustments
+  ion-header ion-toolbar {
+    --min-height: 48px;
+  }
+
+  .app-main-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  // Map should take full screen on mobile
+  app-map {
+    position: fixed;
+    top: 48px; // Below header
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+
+  // Metric cards smaller on mobile
+  .metrics-grid {
+    ion-col {
+      padding: 2px;
+    }
+
+    .metric-card {
+      margin: 0;
+
+      ion-card-header {
+        padding: 8px;
+      }
+
+      ion-card-subtitle {
+        font-size: 10px;
+      }
+
+      ion-card-title {
+        font-size: 16px;
+      }
+
+      ion-card-content {
+        padding: 4px 8px;
+
+        ion-note {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+
+  // Compact section cards
+  .section-card {
+    margin-bottom: 12px;
+    border-radius: 8px;
+
+    ion-card-header {
+      padding: 12px;
+    }
+
+    ion-card-content {
+      padding: 8px;
+    }
+
+    .section-title {
+      font-size: 14px;
+    }
+  }
+
+  // Tab content padding
+  .tab-content,
+  .monitoring-container,
+  .planning-container {
+    padding: 8px;
+  }
+
+  .tab-content-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+  }
+
+  // Chart containers
+  .chart-container {
+    padding: 8px;
+    border-width: 2px;
+  }
+
+  .chart-container-portrait {
+    max-width: 200px;
+    padding: 8px;
+    border-width: 2px;
+  }
+
+  // Lists more compact
+  ion-list ion-item {
+    --min-height: 40px;
+    font-size: 14px;
+  }
+
+  ion-item ion-label h3 {
+    font-size: 14px;
+  }
+
+  ion-item ion-label p {
+    font-size: 12px;
+  }
+
+  ion-item ion-note {
+    font-size: 12px;
+  }
+
+  // Hide debug buttons on mobile
+  app-debug-query-button {
+    display: none;
+  }
+}
+
+// Tablet adjustments (768px - 991px)
+@media (min-width: 768px) and (max-width: 991px) {
+  .app-main-title {
+    font-size: 16px;
+  }
+
+  // Narrower panels on tablet
+  .left-panel {
+    width: 280px !important;
+  }
+
+  .right-panel {
+    width: 40% !important;
+  }
+}
+
+// ============================================================================
+// FOOTER STYLING
+// ============================================================================
+
+.footer-toolbar {
+  --background: #2d5016;
+  --min-height: 60px;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 16px;
+}
+
+.footer-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 6px;
+}
+
+.logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.footer-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  // Removed filter to show original logo colors
+}
+
+.logo-fallback {
+  display: none;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.footer-copyright {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  text-align: center;
+}
+
+// Responsive footer
+@media (max-width: 768px) {
+  .footer-logos {
+    gap: 16px;
+  }
+
+  .footer-logo {
+    height: 24px;
+  }
+
+  .logo-fallback {
+    font-size: 10px;
+  }
+
+  .footer-copyright {
+    font-size: 10px;
+  }
+}
+
+// Loading spinner styles
+.inline-loading,
+.chart-loading,
+.initial-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  color: #666;
+
+  ion-spinner {
+    --color: #2d5016;
+    width: 20px;
+    height: 20px;
+  }
+
+  span {
+    font-size: 13px;
+  }
+}
+
+.initial-loading {
+  flex-direction: column;
+  padding: 32px;
+
+  ion-spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  span {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+}
+
+.chart-loading {
+  min-height: 200px;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+}
+
+.chart-no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--ion-color-medium);
+  text-align: center;
+  min-height: 150px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+
+  ion-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  span {
+    font-size: 0.9em;
+  }
+}
+
+// ============================================================================
+// TAB 3 - NERACA KEBUTUHAN AIR STYLES
+// ============================================================================
+
+// Tabel Jadwal Irigasi
+.irigasi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  margin-top: 12px;
+
+  th,
+  td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  td {
+    color: #555;
+  }
+
+  tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  // Numeric columns align right (columns 2, 3, 4 = Debit, Durasi, Pompa)
+  td:nth-child(2),
+  td:nth-child(3),
+  td:nth-child(4),
+  th:nth-child(2),
+  th:nth-child(3),
+  th:nth-child(4) {
+    text-align: right;
+  }
+}
+
+// Table note/footer
+.table-note {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 12px;
+  font-style: italic;
+}
+
+// Chart legend for Neraca Air
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+  color: #555;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 20px;
+  height: 0;
+  border-top: 3px solid;
+  border-radius: 2px;
+}
+
+// Responsive adjustments for irigasi table
+@media (max-width: 576px) {
+  .irigasi-table {
+    font-size: 0.8em;
+
+    th,
+    td {
+      padding: 8px 4px;
+    }
+  }
+
+  .chart-legend {
+    gap: 10px;
+  }
+
+  .legend-item {
+    font-size: 0.75em;
+  }
+}

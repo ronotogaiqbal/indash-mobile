@@ -1,0 +1,55 @@
+<div
+  #panelElement
+  class="side-panel"
+  [ngClass]="{
+    left: position === 'left' && mode === 'side',
+    right: position === 'right' && mode === 'side',
+    bottom: position === 'bottom' && mode === 'side',
+    collapsed: (isCollapsed || !isEnabled) && mode === 'side',
+    'bottom-sheet': mode === 'bottom-sheet',
+    'bottom-sheet-collapsed': mode === 'bottom-sheet' && bottomSheetState === 'collapsed',
+    'bottom-sheet-half': mode === 'bottom-sheet' && bottomSheetState === 'half',
+    'bottom-sheet-full': mode === 'bottom-sheet' && bottomSheetState === 'full'
+  }"
+  [style.width]="mode === 'bottom-sheet' ? '100%' : (position !== 'bottom' ? panelWidth : '100%')"
+  [style.height]="mode === 'bottom-sheet' ? getBottomSheetHeight() : (position === 'bottom' ? panelHeight : '100%')"
+  [style.background-color]="backgroundColor"
+  [style.opacity]="overlayOpacity"
+  [style.transition]="transitionSpeed"
+>
+  <!-- Drag handle for bottom sheet mode -->
+  @if (mode === 'bottom-sheet') {
+    <div
+      class="drag-handle"
+      (touchstart)="onDragHandleTouchStart($event)"
+      (mousedown)="onDragHandleMouseDown($event)"
+      (click)="onDragHandleClick($event)"
+    >
+      <div class="drag-indicator"></div>
+    </div>
+  }
+
+  <div class="panel-content">
+    <ng-content></ng-content>
+  </div>
+
+  <!-- Toggle button for side mode only -->
+  @if (mode === 'side') {
+    <button
+      class="toggle-button"
+      [ngClass]="{
+        right: position === 'left',
+        left: position === 'right',
+        bottom: position === 'bottom',
+        disabled: !isEnabled,
+        collapsed: isCollapsed
+      }"
+      (click)="togglePanel()"
+      [disabled]="!isEnabled"
+    >
+      <span class="arrow-icon">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </span>
+    </button>
+  }
+</div>

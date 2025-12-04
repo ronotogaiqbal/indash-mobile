@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "lahan_120916",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_LAHAN": "1209162002001" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 99.50508338, 2.852507 ], [ 99.50687549, 2.85373839 ], [ 99.50298229, 2.85371444 ], [ 99.50312015, 2.85217639 ], [ 99.50419446, 2.85151518 ], [ 99.50508338, 2.852507 ] ] ] } },
+{ "type": "Feature", "properties": { "ID_LAHAN": "1209162002002" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 99.50702285, 2.8539013 ], [ 99.50589149, 2.8551854 ], [ 99.50519747, 2.85383901 ], [ 99.50702285, 2.8539013 ] ] ] } },
+{ "type": "Feature", "properties": { "ID_LAHAN": "1209162018001" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 99.52107188, 2.93735818 ], [ 99.52149049, 2.9373965 ], [ 99.52155146, 2.9375037 ], [ 99.52107188, 2.93735818 ] ] ] } }
+]
+}

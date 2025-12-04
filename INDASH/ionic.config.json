@@ -1,0 +1,7 @@
+{
+  "name": "INDASH",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

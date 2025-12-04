@@ -1,0 +1,1280 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="app-main-title">
+      Dashboard Sistem Integrasi Kementerian Pertanian
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <!-- ============================================================================ -->
+  <!-- DESKTOP LAYOUT (>= 768px) -->
+  <!-- ============================================================================ -->
+  @if (!isMobile) {
+    <!-- Left panel with proper positioning -->
+    <app-side-panel
+      class="left-panel"
+      position="left"
+      mode="side"
+      [panelWidth]="'300px'"
+      [backgroundColor]="'rgba(255,255,255,0.6)'"
+      [(isCollapsed)]="leftPanelCollapsed"
+      [(isEnabled)]="leftPanelEnabled"
+    >
+      <div class="left-content">
+        <ion-card class="consolidated-left-panel">
+          <ion-card-header class="main-panel-header">
+            <ion-card-title class="main-panel-title">
+              INFORMASI LAHAN
+            </ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            @if (initialDataLoading) {
+              <div class="initial-loading">
+                <ion-spinner name="crescent"></ion-spinner>
+                <span>Memuat data awal...</span>
+              </div>
+            } @else {
+            <!-- Section 1: Informasi Lokasi -->
+            <div class="info-section">
+              <h3 class="section-title">
+                Informasi Lokasi
+                @if (idWatcher.getCurrentId() !== '' && queryMetadata.locationHierarchy) {
+                  <app-debug-query-button [metadata]="queryMetadata.locationHierarchy"></app-debug-query-button>
+                }
+              </h3>
+              @if (idWatcher.getCurrentId() !== '') {
+                <div>
+                  <strong>{{ (idWatcher.getCurrentId().length === 13) ? 'Lahan Desa' :
+                    ((idWatcher.getCurrentId().length === 10) ? 'Desa' : 'Kecamatan') }}</strong>
+                  <br>
+                  @if (locationLoading) {
+                    <div class="inline-loading">
+                      <ion-spinner name="dots"></ion-spinner>
+                      <span>Memuat lokasi...</span>
+                    </div>
+                  } @else if (locationHierarchy !== '') {
+                    {{ locationHierarchy }}
+                  } @else {
+                    {{ qRes1?.NAMA }}
+                  }
+                </div>
+              } @else {
+                <p>Pilih pada peta</p>
+              }
+            </div>
+
+            <!-- Section 2: Sumber Daya Lahan -->
+            @if (idWatcher.getCurrentId() !== '') {
+            <div class="info-section">
+              <h3 class="section-title">
+                Sumber Daya Lahan
+                @if (queryMetadata.sumberDayaLahan) {
+                  <app-debug-query-button [metadata]="queryMetadata.sumberDayaLahan"></app-debug-query-button>
+                }
+              </h3>
+              <ion-grid fixed>
+                <ion-row>
+                  <ion-col size="6">Luas LBS</ion-col>
+                  <ion-col size="6">
+                    @if (qRes2 && qRes2.LBS) { {{formatNumber(qRes2?.LBS)}}
+                    ha }
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col size="6">Agro ekosistem</ion-col>
+                  <ion-col size="6">
+                    @if (qRes2 && qRes2.STATUS) { Sawah
+                    {{helperFn.replaceAGROS2(qRes2.STATUS)}} }
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col size="6">Provitas Padi</ion-col>
+                  <ion-col size="6">
+                    @if (qRes2 && qRes2.PADI) { {{qRes2.PADI}} ton/ha }
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col size="6">Sumber Air</ion-col>
+                  <ion-col size="6">
+                    @if (qRes2) { @if (qRes2.AirPermukaan !== '00') { Air
+                    Permukaan<br />
+                    } @else if (qRes2.AirTanah !== '00') { Air Tanah<br />
+                    } @else if (qRes2.Embung !== '00') { Curah Hujan<br />
+                    } }
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col size="6">Infrastruktur Irigasi</ion-col>
+                  <ion-col size="6">
+                    @if (qRes2) { @if (qRes2.AirPermukaan === '01') { Pompa
+                    (Saluran)<br />
+                    } @else if (qRes2.AirPermukaan === '02') { Pompa (Sungai)<br />
+                    } @else if (qRes2.AirTanah === '01') { Pompa (Sumur Dangkal)<br />
+                    } @else if (qRes2.AirTanah === '02') { Pompa (Sumur Dalam)<br />
+                    } @else if (qRes2.Embung === '01') { Long Storage<br />
+                    } @else if (qRes2.Embung === '02') { Embung<br />
+                    } }
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </div>
+
+            <!-- Section 3: Proyeksi Curah Hujan -->
+            <div class="info-section">
+              <h3 class="section-title">
+                Proyeksi Curah Hujan
+                @if (queryMetadata.curahHujan) {
+                  <app-debug-query-button [metadata]="queryMetadata.curahHujan"></app-debug-query-button>
+                }
+              </h3>
+              <div class="chart-container-portrait">
+                @if (chartDataLoading) {
+                  <div class="chart-loading">
+                    <ion-spinner name="crescent"></ion-spinner>
+                    <span>Memuat data curah hujan...</span>
+                  </div>
+                } @else if (chartDataError) {
+                  <div class="chart-no-data">
+                    <ion-icon name="alert-circle" color="medium"></ion-icon>
+                    <span>{{ chartDataError }}</span>
+                  </div>
+                } @else {
+                  <canvas #barCanvas id="barCanvas"></canvas>
+                }
+              </div>
+            </div>
+            }
+            } <!-- end of @else for initialDataLoading -->
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </app-side-panel>
+
+    <!-- Right panel with proper positioning -->
+    <app-side-panel
+      class="right-panel"
+      position="right"
+      mode="side"
+      [panelWidth]="'35%'"
+      [backgroundColor]="'rgba(255,255,255,0.6)'"
+      [(isCollapsed)]="rightPanelCollapsed"
+      [(isEnabled)]="rightPanelEnabled"
+    >
+      <ng-container *ngTemplateOutlet="rightPanelContent"></ng-container>
+    </app-side-panel>
+  }
+
+  <!-- ============================================================================ -->
+  <!-- MOBILE LAYOUT (< 768px) -->
+  <!-- ============================================================================ -->
+  @if (isMobile) {
+    <!-- FAB for Info Panel (replaces left panel) -->
+    <ion-fab vertical="top" horizontal="start" slot="fixed" class="mobile-info-fab">
+      <ion-fab-button size="small" color="primary" (click)="toggleMobileInfoModal()">
+        <ion-icon name="information-circle-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+    <!-- Mobile Info Modal -->
+    <ion-modal [isOpen]="showMobileInfoModal" (didDismiss)="showMobileInfoModal = false">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar color="primary">
+            <ion-title>Informasi Lokasi</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="showMobileInfoModal = false">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="mobile-info-content">
+          <ng-container *ngTemplateOutlet="leftPanelContentTemplate"></ng-container>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Bottom Sheet for Right Panel Content -->
+    <app-side-panel
+      class="mobile-bottom-sheet"
+      mode="bottom-sheet"
+      [bottomSheetState]="bottomSheetState"
+      (bottomSheetStateChange)="onBottomSheetStateChange($event)"
+      [collapsedHeight]="'70px'"
+      [halfHeight]="'50vh'"
+      [fullHeight]="'85vh'"
+      [backgroundColor]="'rgba(255,255,255,0.6)'"
+    >
+      <ng-container *ngTemplateOutlet="rightPanelContent"></ng-container>
+    </app-side-panel>
+  }
+
+  <!-- Map Component (always visible) -->
+  <app-map></app-map>
+</ion-content>
+
+<!-- Footer only on desktop -->
+@if (!isMobile) {
+  <ion-footer>
+    <ion-toolbar class="footer-toolbar">
+      <div class="footer-content">
+        <div class="footer-logos">
+          <div class="logo-item">
+            <img src="assets/logo/kementan.svg" alt="Kementerian Pertanian" class="footer-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback">Kementan</span>
+          </div>
+          <div class="logo-item">
+            <img src="assets/logo/bmkg.png" alt="BMKG" class="footer-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback">BMKG</span>
+          </div>
+          <div class="logo-item">
+            <img src="assets/logo/pupr.svg" alt="Kementerian PUPR" class="footer-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback">Kemen PUPR</span>
+          </div>
+          <div class="logo-item">
+            <img src="assets/logo/brin.svg" alt="BRIN" class="footer-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback">BRIN</span>
+          </div>
+          <div class="logo-item">
+            <img src="assets/logo/big.svg" alt="Badan Informasi Geospasial" class="footer-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback">BIG</span>
+          </div>
+          <div class="logo-item">
+            <img src="assets/logo/bps.svg" alt="Badan Pusat Statistik" class="footer-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback">BPS</span>
+          </div>
+        </div>
+        <div class="footer-copyright">
+          &copy; 2025 Kementerian Pertanian RI
+        </div>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
+}
+
+<!-- ============================================================================ -->
+<!-- SHARED TEMPLATES -->
+<!-- ============================================================================ -->
+
+<!-- Left Panel Content Template (for modal reuse) -->
+<ng-template #leftPanelContentTemplate>
+  <ion-card class="consolidated-left-panel mobile-card">
+    <ion-card-header class="main-panel-header">
+      <ion-card-title class="main-panel-title">
+        INFORMASI SIAP TANAM
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- Section 1: Informasi Lokasi -->
+      <div class="info-section">
+        <h3 class="section-title">Informasi Lokasi</h3>
+        @if (idWatcher.getCurrentId() !== '') {
+          <div>
+            <strong>{{ (idWatcher.getCurrentId().length === 13) ? 'Lahan Desa' :
+              ((idWatcher.getCurrentId().length === 10) ? 'Desa' : 'Kecamatan') }}</strong>
+            <br>
+            @if (locationHierarchy !== '') {
+              {{ locationHierarchy }}
+            } @else {
+              {{ qRes1?.NAMA }}
+            }
+          </div>
+        } @else {
+          <p>Pilih pada peta</p>
+        }
+      </div>
+
+      <!-- Section 2: Sumber Daya Lahan -->
+      @if (idWatcher.getCurrentId() !== '') {
+      <div class="info-section">
+        <h3 class="section-title">Sumber Daya Lahan</h3>
+        <ion-list lines="full">
+          <ion-item>
+            <ion-label>Luas LBS</ion-label>
+            <ion-note slot="end">@if (qRes2 && qRes2.LBS) { {{formatNumber(qRes2?.LBS)}} ha }</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Agro ekosistem</ion-label>
+            <ion-note slot="end">@if (qRes2 && qRes2.STATUS) { Sawah {{helperFn.replaceAGROS2(qRes2.STATUS)}} }</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Provitas Padi</ion-label>
+            <ion-note slot="end">@if (qRes2 && qRes2.PADI) { {{qRes2.PADI}} ton/ha }</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Sumber Air</ion-label>
+            <ion-note slot="end">
+              @if (qRes2) {
+                @if (qRes2.AirPermukaan !== '00') { Air Permukaan }
+                @else if (qRes2.AirTanah !== '00') { Air Tanah }
+                @else if (qRes2.Embung !== '00') { Curah Hujan }
+              }
+            </ion-note>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Section 3: Proyeksi Curah Hujan -->
+      <div class="info-section">
+        <h3 class="section-title">Proyeksi Curah Hujan</h3>
+        <div class="chart-container-portrait">
+          @if (chartDataLoading) {
+            <div class="chart-loading">
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Memuat data curah hujan...</span>
+            </div>
+          } @else if (chartDataError) {
+            <div class="chart-no-data">
+              <ion-icon name="alert-circle" color="medium"></ion-icon>
+              <span>{{ chartDataError }}</span>
+            </div>
+          } @else {
+            <canvas #barCanvas id="barCanvasMobile"></canvas>
+          }
+        </div>
+      </div>
+      }
+    </ion-card-content>
+  </ion-card>
+</ng-template>
+
+<!-- Right Panel Content Template (shared between desktop and mobile) -->
+<ng-template #rightPanelContent>
+  <ion-tabs class="right-content">
+    <ion-tab tab="siscrop">
+      <div class="monitoring-container">
+        <h2 class="tab-content-title">Monitoring Lahan Sawah</h2>
+        <!-- Header -->
+        <ion-card>
+          <ion-card-header>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <ion-card-subtitle>Monitoring Lahan Sawah</ion-card-subtitle>
+                @if (tab1Data && tab1Data.dataDate) {
+                  <ion-note>Data: {{ tab1Data.dataDate.formatted }}
+                    @if (tab1Data.dataDate.isRealTime) {
+                      <ion-badge color="success">Real-time</ion-badge>
+                    }
+                  </ion-note>
+                }
+                @if (currentLocationLevel) {
+                  <ion-note color="medium" style="display: block; margin-top: 4px;">
+                    Level Data: {{ getLevelLabel() }}
+                    @if (isLahanSelected()) {
+                      <span style="font-size: 0.85em;"> (dari Desa)</span>
+                    }
+                  </ion-note>
+                }
+              </div>
+              @if (queryMetadata.tab1Siscrop && !isMobile) {
+                <app-debug-query-button [metadata]="queryMetadata.tab1Siscrop"></app-debug-query-button>
+              }
+            </div>
+          </ion-card-header>
+        </ion-card>
+
+        <!-- Loading/Error States -->
+        @if (tabStates.tab1.loading) {
+          <ion-card>
+            <ion-card-content>
+              <div class="loading-container">
+                <ion-spinner></ion-spinner>
+                <p>Memuat data SISCROP...</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+        @else if (tabStates.tab1.error) {
+          <ion-card>
+            <ion-card-content>
+              <ion-item color="warning">
+                <ion-icon name="alert-circle" slot="start"></ion-icon>
+                <ion-label>{{ tabStates.tab1.error }}</ion-label>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+        }
+        @else if (tab1Data) {
+          <!-- 3 Cards Metrik Utama -->
+          <ion-grid class="metrics-grid">
+            <ion-row>
+              <ion-col size="4">
+                <ion-card class="metric-card" style="background: rgba(158,54,35,0.9);">
+                  <ion-card-header>
+                    <ion-card-subtitle style="color: white;">Bera</ion-card-subtitle>
+                    <ion-card-title style="color: white;">{{ formatNumber(tab1Data.metrics.beraArea, 0) }}</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-note style="color: white;">hektar</ion-note>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="4">
+                <ion-card class="metric-card" style="background: rgba(34,139,34,0.9);">
+                  <ion-card-header>
+                    <ion-card-subtitle style="color: white;">Padi</ion-card-subtitle>
+                    <ion-card-title style="color: white;">{{ formatNumber(tab1Data.metrics.padiArea, 0) }}</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-note style="color: white;">hektar</ion-note>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="4">
+                <ion-card class="metric-card" style="background: rgba(0,0,200,0.9);">
+                  <ion-card-header>
+                    <ion-card-subtitle style="color: white;">Air</ion-card-subtitle>
+                    <ion-card-title style="color: white;">{{ formatNumber(tab1Data.metrics.airArea, 0) }}</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-note style="color: white;">hektar</ion-note>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <!-- Chart Bar Fase Padi -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Fase Padi</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="chart-container" style="position: relative; height: 250px;">
+                <canvas #phaseBarCanvas id="phaseBarCanvas"></canvas>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Tabel Estimasi Luas Panen dan Produksi -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Estimasi Luas Panen & Produksi</ion-card-title>
+              <ion-note>Proyeksi 4 bulan ke depan</ion-note>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item>
+                  <ion-label>
+                    <h3><strong>{{ getMonthName(0) }}</strong></h3>
+                    <p>Luas Panen: {{ formatNumber(tab1Data.harvestForecast.pn1, 2) }} ha</p>
+                    <p>Produksi: {{ formatNumber(tab1Data.productionForecast.month1, 2) }} ton</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item>
+                  <ion-label>
+                    <h3><strong>{{ getMonthName(1) }}</strong></h3>
+                    <p>Luas Panen: {{ formatNumber(tab1Data.harvestForecast.pn2, 2) }} ha</p>
+                    <p>Produksi: {{ formatNumber(tab1Data.productionForecast.month2, 2) }} ton</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item>
+                  <ion-label>
+                    <h3><strong>{{ getMonthName(2) }}</strong></h3>
+                    <p>Luas Panen: {{ formatNumber(tab1Data.harvestForecast.pn3, 2) }} ha</p>
+                    <p>Produksi: {{ formatNumber(tab1Data.productionForecast.month3, 2) }} ton</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item>
+                  <ion-label>
+                    <h3><strong>{{ getMonthName(3) }}</strong></h3>
+                    <p>Luas Panen: {{ formatNumber(tab1Data.harvestForecast.pn4, 2) }} ha</p>
+                    <p>Produksi: {{ formatNumber(tab1Data.productionForecast.month4, 2) }} ton</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item color="primary">
+                  <ion-label>
+                    <h2><strong>Total</strong></h2>
+                    <p><strong>Produksi: {{ formatNumber(tab1Data.productionForecast.total, 2) }} ton</strong></p>
+                  </ion-label>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        }
+        @else {
+          <ion-card>
+            <ion-card-content>
+              <ion-item>
+                <ion-label class="ion-text-center">
+                  <p>Pilih lokasi pada peta untuk melihat data</p>
+                </ion-label>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    </ion-tab>
+    <ion-tab tab="katam">
+      <div class="planning-container">
+        <h2 class="tab-content-title">Perencanaan Tanam</h2>
+        <!-- Header -->
+        <ion-card>
+          <ion-card-header>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <ion-card-subtitle>Perencanaan Tanam</ion-card-subtitle>
+                @if (currentLocationLevel) {
+                  <ion-note color="medium" style="display: block; margin-top: 4px;">
+                    Level Data: {{ getLevelLabel() }}
+                    @if (isLahanSelected()) {
+                      <span style="font-size: 0.85em;"> (dari Desa)</span>
+                    }
+                  </ion-note>
+                }
+              </div>
+              @if (queryMetadata.tab2Katam && !isMobile) {
+                <app-debug-query-button [metadata]="queryMetadata.tab2Katam"></app-debug-query-button>
+              }
+            </div>
+          </ion-card-header>
+        </ion-card>
+
+        <!-- Loading/Error States -->
+        @if (tabStates.tab2.loading) {
+          <ion-card>
+            <ion-card-content>
+              <div class="loading-container">
+                <ion-spinner></ion-spinner>
+                <p>Memuat data KATAM...</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+        @else if (tabStates.tab2.error) {
+          <ion-card>
+            <ion-card-content>
+              <ion-item color="warning" lines="none">
+                <ion-icon name="alert-circle" slot="start"></ion-icon>
+                <ion-label>
+                  <h3>{{ tabStates.tab2.error }}</h3>
+                  @if (tabStates.tab2.availabilityInfo?.details) {
+                    <p style="font-size: 0.9em; margin-top: 8px;">
+                      {{ tabStates.tab2.availabilityInfo?.details }}
+                    </p>
+                  }
+                </ion-label>
+              </ion-item>
+
+              @if (tabStates.tab2.availabilityInfo?.reason === 'no_data_year_season') {
+                <ion-item lines="none">
+                  <ion-label class="ion-text-wrap">
+                    <h4>Saran:</h4>
+                    <ul style="padding-left: 20px; margin: 8px 0;">
+                      <li>Coba pilih lokasi lain di tingkat yang sama</li>
+                      <li>Data historis mungkin tersedia untuk tahun sebelumnya</li>
+                    </ul>
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+        @else if (tab2Data) {
+          <!-- 1. JADWAL TANAM -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="calendar" color="primary"></ion-icon>
+                Jadwal Tanam
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list lines="full">
+                <ion-item>
+                  <ion-label>Tahun</ion-label>
+                  <ion-note slot="end">{{ tab2Data.planting.year }}</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Mulai Tanam</ion-label>
+                  <ion-note slot="end">{{ tab2Data.planting.startDate }}</ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 2. KOMODITAS -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="leaf" color="success"></ion-icon>
+                Komoditas
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list lines="full">
+                @if (tab2Data.crops.breakdown.padi) {
+                  <ion-item>
+                    <span slot="start" style="font-size: 24px;">🌾</span>
+                    <ion-label>Padi</ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.crops.breakdown.padi, 1) }} ha</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.crops.breakdown.jagung) {
+                  <ion-item>
+                    <span slot="start" style="font-size: 24px;">🌽</span>
+                    <ion-label>Jagung</ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.crops.breakdown.jagung, 1) }} ha</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.crops.breakdown.kedelai) {
+                  <ion-item>
+                    <span slot="start" style="font-size: 24px;">🫘</span>
+                    <ion-label>Kedelai</ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.crops.breakdown.kedelai, 1) }} ha</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.crops.recommended.length > 1) {
+                  <ion-item color="light">
+                    <ion-label><strong>Total Luas</strong></ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.crops.totalArea, 1) }} ha</strong></ion-note>
+                  </ion-item>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 3. POTENSI PRODUKSI -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="bar-chart" color="success"></ion-icon>
+                Potensi Produksi
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list lines="full">
+                <!-- Provitas per komoditas -->
+                @if (tab2Data.production.breakdown.padi) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Provitas Padi</h3>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.breakdown.padi.productivity, 2) }} ton/ha</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.production.breakdown.jagung) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Provitas Jagung</h3>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.breakdown.jagung.productivity, 2) }} ton/ha</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.production.breakdown.kedelai) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Provitas Kedelai</h3>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.breakdown.kedelai.productivity, 2) }} ton/ha</strong></ion-note>
+                  </ion-item>
+                }
+                <!-- Produksi per komoditas -->
+                @if (tab2Data.production.breakdown.padi) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Produksi Padi</h3>
+                      <p>{{ formatNumber(tab2Data.crops.breakdown.padi, 1) }} ha × {{ formatNumber(tab2Data.production.breakdown.padi.productivity, 2) }} ton/ha</p>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.breakdown.padi.production, 2) }} ton</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.production.breakdown.jagung) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Produksi Jagung</h3>
+                      <p>{{ formatNumber(tab2Data.crops.breakdown.jagung, 1) }} ha × {{ formatNumber(tab2Data.production.breakdown.jagung.productivity, 2) }} ton/ha</p>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.breakdown.jagung.production, 2) }} ton</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.production.breakdown.kedelai) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Produksi Kedelai</h3>
+                      <p>{{ formatNumber(tab2Data.crops.breakdown.kedelai, 1) }} ha × {{ formatNumber(tab2Data.production.breakdown.kedelai.productivity, 2) }} ton/ha</p>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.breakdown.kedelai.production, 2) }} ton</strong></ion-note>
+                  </ion-item>
+                }
+                <!-- Total Produksi -->
+                <ion-item color="success">
+                  <ion-label><strong>Total Potensi Produksi</strong></ion-label>
+                  <ion-note slot="end"><strong>{{ formatNumber(tab2Data.production.potential, 2) }} ton</strong></ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 4. KEBUTUHAN BENIH -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <span style="font-size: 20px; margin-right: 8px;">🌱</span>
+                Kebutuhan Benih
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list lines="full">
+                @if (tab2Data.inputs.seeds.padi) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Padi</h3>
+                      <p>{{ formatNumber(tab2Data.crops.breakdown.padi, 1) }} ha × 25 kg/ha</p>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.seeds.padi, 0) }} kg</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.inputs.seeds.jagung) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Jagung</h3>
+                      <p>{{ formatNumber(tab2Data.crops.breakdown.jagung, 1) }} ha × 20 kg/ha</p>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.seeds.jagung, 0) }} kg</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.inputs.seeds.kedelai) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>Kedelai</h3>
+                      <p>{{ formatNumber(tab2Data.crops.breakdown.kedelai, 1) }} ha × 40 kg/ha</p>
+                    </ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.seeds.kedelai, 0) }} kg</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.crops.recommended.length > 1) {
+                  <ion-item color="light">
+                    <ion-label><strong>Total Benih</strong></ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.seeds.total, 0) }} kg</strong></ion-note>
+                  </ion-item>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 5. KEBUTUHAN PUPUK -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <span style="font-size: 20px; margin-right: 8px;">💊</span>
+                Kebutuhan Pupuk
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list lines="full">
+                @if (tab2Data.inputs.fertilizer.urea) {
+                  <ion-item>
+                    <ion-label>Urea</ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.fertilizer.urea, 0) }} kg</strong></ion-note>
+                  </ion-item>
+                }
+                @if (tab2Data.inputs.fertilizer.npk) {
+                  <ion-item>
+                    <ion-label>NPK/Phonska</ion-label>
+                    <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.fertilizer.npk, 0) }} kg</strong></ion-note>
+                  </ion-item>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 6. KEBUTUHAN AIR -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="water" color="primary"></ion-icon>
+                Kebutuhan Air
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <!-- Status Badge -->
+              <div class="water-status-badge">
+                @if (tab2Data.inputs.water.wdq >= 80) {
+                  <ion-badge color="primary" style="font-size: 1em; padding: 10px;">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                    Cukup Air ({{ formatNumber(tab2Data.inputs.water.wdq, 0) }}%)
+                  </ion-badge>
+                } @else {
+                  <ion-badge color="warning" style="font-size: 1em; padding: 10px;">
+                    <ion-icon name="alert-circle"></ion-icon>
+                    Kurang Air ({{ formatNumber(tab2Data.inputs.water.wdq, 0) }}%)
+                  </ion-badge>
+                }
+              </div>
+
+              <!-- Detail Data -->
+              <ion-list lines="full">
+                <ion-item>
+                  <ion-label>
+                    <h3>Kebutuhan Air (WRQ)</h3>
+                  </ion-label>
+                  <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.water.requirement, 0) }} mm</strong></ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>
+                    <h3>Kecukupan Air (WDQ)</h3>
+                  </ion-label>
+                  <ion-note slot="end"><strong>{{ formatNumber(tab2Data.inputs.water.wdq, 0) }} %</strong></ion-note>
+                </ion-item>
+                <ion-item [color]="tab2Data.inputs.water.deficit > 0 ? 'danger' : ''">
+                  <ion-label [style.color]="tab2Data.inputs.water.deficit > 0 ? 'white' : ''">
+                    <h3><strong>Defisit Air (IRR)</strong></h3>
+                  </ion-label>
+                  <ion-note slot="end" [style.color]="tab2Data.inputs.water.deficit > 0 ? 'white' : ''"><strong>{{ formatNumber(tab2Data.inputs.water.deficit, 0) }} mm</strong></ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 7. POTENSI KEHILANGAN HASIL -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="trending-down" color="danger"></ion-icon>
+                Potensi Kehilangan Hasil
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <!-- Progress Bar - Potensi Kehilangan (100 - WDQ) -->
+              <div class="loss-progress-container">
+                <div class="progress-label">
+                  <span>Potensi Kehilangan: {{ formatNumber(100 - tab2Data.inputs.water.wdq, 0) }}%</span>
+                </div>
+                <ion-progress-bar
+                  [value]="(100 - tab2Data.inputs.water.wdq) / 100"
+                  [color]="(100 - tab2Data.inputs.water.wdq) > 20 ? 'danger' : ((100 - tab2Data.inputs.water.wdq) > 10 ? 'warning' : 'success')">
+                </ion-progress-bar>
+              </div>
+
+              <!-- Detail breakdown -->
+              <ion-list lines="full">
+                <ion-item>
+                  <ion-label>
+                    <h3>Kehilangan dari Kurang Air</h3>
+                    <p>{{ formatNumber(100 - tab2Data.inputs.water.wdq, 1) }}% × {{ formatNumber(tab2Data.production.potential, 2) }} ton</p>
+                  </ion-label>
+                  <ion-note slot="end"><strong>{{ formatNumber((100 - tab2Data.inputs.water.wdq) / 100 * tab2Data.production.potential, 2) }} ton</strong></ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 8. WASPADA OPT -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="bug" color="warning"></ion-icon>
+                Waspada OPT
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-icon name="information-circle" slot="start" color="medium"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                  <p>Data prediksi OPT sementara tidak tersedia</p>
+                </ion-label>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 9. KEBUTUHAN ALSINTAN -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="construct" color="tertiary"></ion-icon>
+                Kebutuhan Alsintan
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <!-- Fase Olah Tanah -->
+              <div class="alsintan-section">
+                <h4 class="alsintan-phase">Fase Olah Tanah</h4>
+                <ion-list lines="full">
+                  <ion-item>
+                    <ion-label>TR4 (Bajak Piringan)</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(1.322751323) }} Unit</strong></ion-note>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label>TR4 (Bajak Rotari)</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(0.83001328) }} Unit</strong></ion-note>
+                  </ion-item>
+                </ion-list>
+                <!-- Opsi Lain (sub dari Fase Olah Tanah) -->
+                <h5 class="alsintan-subphase">Opsi Lain</h5>
+                <ion-list lines="full">
+                  <ion-item>
+                    <ion-label>TR2 (Bajak Singkal)</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(6.313131313) }} Unit</strong></ion-note>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label>TR2 (Bajak Rotari)</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(4.166666667) }} Unit</strong></ion-note>
+                  </ion-item>
+                </ion-list>
+              </div>
+
+              <!-- Fase Penanaman -->
+              <div class="alsintan-section">
+                <h4 class="alsintan-phase">Fase Penanaman</h4>
+                <ion-list lines="full">
+                  <ion-item>
+                    <ion-label>Transplanter (2.5HP)</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(3.472222222) }} Unit</strong></ion-note>
+                  </ion-item>
+                </ion-list>
+                <!-- Opsi Lain (sub dari Fase Penanaman) -->
+                <h5 class="alsintan-subphase">Opsi Lain</h5>
+                <ion-list lines="full">
+                  <ion-item>
+                    <ion-label>Mist Blower</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(0.520833333) }} Unit</strong></ion-note>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label>Drone</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(0.416666667) }} Unit</strong></ion-note>
+                  </ion-item>
+                </ion-list>
+              </div>
+
+              <!-- Fase Perawatan -->
+              <div class="alsintan-section">
+                <h4 class="alsintan-phase">Fase Perawatan</h4>
+                <ion-list lines="full">
+                  <ion-item>
+                    <ion-label>Hand sprayer</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(2.604166667) }} Unit</strong></ion-note>
+                  </ion-item>
+                </ion-list>
+              </div>
+
+              <!-- Pemanenan -->
+              <div class="alsintan-section">
+                <h4 class="alsintan-phase">Pemanenan</h4>
+                <ion-list lines="full">
+                  <ion-item>
+                    <ion-label>Combine harvester</ion-label>
+                    <ion-note slot="end"><strong>{{ calculateAlsintan(0.925925926) }} Unit</strong></ion-note>
+                  </ion-item>
+                </ion-list>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+        }
+        @else {
+          <ion-card>
+            <ion-card-content>
+              <ion-item>
+                <ion-label class="ion-text-center">
+                  <p>Pilih lokasi pada peta untuk melihat data</p>
+                </ion-label>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    </ion-tab>
+    <ion-tab tab="sifortuna">
+      <div class="tab-content">
+        <h2 class="tab-content-title">Optimasi Irigasi</h2>
+
+        @if (tabStates.tab3.loading) {
+          <ion-card>
+            <ion-card-content>
+              <div class="loading-container">
+                <ion-spinner></ion-spinner>
+                <p>Memuat data...</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+        @else if (tab3IrrigationData) {
+          <!-- 1. NERACA AIR TANAMAN (Chart) -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="water" color="primary"></ion-icon>
+                Neraca Air Tanaman
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="chart-container" style="height: 250px;">
+                <canvas #neracaAirChart></canvas>
+              </div>
+              <!-- Legend -->
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-color" style="background-color: #4CAF50;"></span> Kebutuhan (WRQ)</span>
+                <span class="legend-item"><span class="legend-color" style="background-color: #9C27B0;"></span> Defisit (IRR)</span>
+                <span class="legend-item"><span class="legend-line" style="border-color: #2196F3;"></span> Ketersediaan (WTOT)</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- 2. REKOMENDASI IRIGASI SUPLEMENTER -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">
+                <ion-icon name="calendar" color="tertiary"></ion-icon>
+                Rekomendasi Irigasi Suplementer
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <!-- Info Sumber -->
+              <ion-list lines="full">
+                <ion-item>
+                  <ion-label>Sumber Irigasi</ion-label>
+                  <ion-note slot="end">Air Permukaan (Sungai)</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Infrastruktur Irigasi</ion-label>
+                  <ion-note slot="end">Pompa</ion-note>
+                </ion-item>
+              </ion-list>
+
+              <!-- Tabel Jadwal Irigasi -->
+              <h6 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Jadwal dan Debit Irigasi Padi per Hektar Lahan</h6>
+              <div class="table-container">
+                <table class="irigasi-table">
+                  <thead>
+                    <tr>
+                      <th>Jadwal</th>
+                      <th>Debit (lpd/ha)</th>
+                      <th>Durasi (jam/hari)</th>
+                      <th>Pompa* (unit)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of jadwalIrigasiData; track item.jadwal) {
+                      <tr>
+                        <td>{{ item.jadwal }}</td>
+                        <td>{{ formatNumber(item.debit, 2) }}</td>
+                        <td>{{ item.durasi }}</td>
+                        <td>{{ item.pompa }}</td>
+                      </tr>
+                    }
+                    @if (jadwalIrigasiData.length === 0) {
+                      <tr>
+                        <td colspan="4" style="text-align: center; color: #666;">
+                          Tidak ada kebutuhan irigasi suplementer untuk lokasi ini
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <p class="table-note">*Kebutuhan jumlah pompa per hektar lahan dengan asumsi kapasitas pompa 1,5 liter per detik</p>
+            </ion-card-content>
+          </ion-card>
+        }
+        @else {
+          <ion-card>
+            <ion-card-content>
+              <ion-item>
+                <ion-label class="ion-text-center">
+                  <p>Pilih lokasi pada peta untuk melihat data</p>
+                </ion-label>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    </ion-tab>
+    <ion-tab tab="summary">
+      <div class="tab-content">
+        <h2 class="tab-content-title">Data Summary</h2>
+        <ion-card>
+          <ion-card-header>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <ion-card-subtitle>Data Summary</ion-card-subtitle>
+            @if (queryMetadata.tab4Summary && !isMobile) {
+              <app-debug-query-button [metadata]="queryMetadata.tab4Summary"></app-debug-query-button>
+            }
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          @if (tabStates.tab4.loading) {
+            <div class="loading-container">
+              <ion-spinner></ion-spinner>
+              <p>Memuat data summary...</p>
+            </div>
+          }
+          @else if (tabStates.tab4.error) {
+            <ion-item color="warning">
+              <ion-icon name="alert-circle" slot="start"></ion-icon>
+              <ion-label>{{ tabStates.tab4.error }}</ion-label>
+            </ion-item>
+          }
+          @else {
+            <ion-accordion-group [value]="currentLocationLevel">
+              @if (tab4Data.desa && shouldShowSummaryLevel('desa')) {
+                <ion-accordion value="desa">
+                  <ion-item slot="header" color="light">
+                    <ion-icon name="location" slot="start"></ion-icon>
+                    <ion-label>{{ tab4Data.desa.name }}</ion-label>
+                  </ion-item>
+                  <div class="ion-padding" slot="content">
+                    <ion-list>
+                      <ion-item>
+                        <ion-label>Total LBS</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.desa.siscrop.totalLBS, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.desa.siscrop.totalHarvestForecast, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Total Luas Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.desa.katam.totalArea, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Produksi</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.desa.katam.estimatedProduction, 0) }} ton</ion-note>
+                      </ion-item>
+                      @if (tab4Data.desa.katam.plantingStartDate) {
+                        <ion-item>
+                          <ion-label>Mulai Tanam</ion-label>
+                          <ion-note slot="end">{{ tab4Data.desa.katam.plantingStartDate }}</ion-note>
+                        </ion-item>
+                      }
+                    </ion-list>
+                  </div>
+                </ion-accordion>
+              }
+              @if (tab4Data.kabu && shouldShowSummaryLevel('kabu')) {
+                <ion-accordion value="kabu">
+                  <ion-item slot="header" color="light">
+                    <ion-icon name="business" slot="start"></ion-icon>
+                    <ion-label>{{ tab4Data.kabu.name }}</ion-label>
+                  </ion-item>
+                  <div class="ion-padding" slot="content">
+                    <ion-list>
+                      <ion-item>
+                        <ion-label>Total LBS</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.kabu.siscrop.totalLBS, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.kabu.siscrop.totalHarvestForecast, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Total Luas Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.kabu.katam.totalArea, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Produksi</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.kabu.katam.estimatedProduction, 0) }} ton</ion-note>
+                      </ion-item>
+                      @if (tab4Data.kabu.katam.plantingStartDate) {
+                        <ion-item>
+                          <ion-label>Mulai Tanam</ion-label>
+                          <ion-note slot="end">{{ tab4Data.kabu.katam.plantingStartDate }}</ion-note>
+                        </ion-item>
+                      }
+                    </ion-list>
+                  </div>
+                </ion-accordion>
+              }
+              @if (tab4Data.prov && shouldShowSummaryLevel('prov')) {
+                <ion-accordion value="prov">
+                  <ion-item slot="header" color="light">
+                    <ion-icon name="map" slot="start"></ion-icon>
+                    <ion-label>{{ tab4Data.prov.name }}</ion-label>
+                  </ion-item>
+                  <div class="ion-padding" slot="content">
+                    <ion-list>
+                      <ion-item>
+                        <ion-label>Total LBS</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.prov.siscrop.totalLBS, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.prov.siscrop.totalHarvestForecast, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Total Luas Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.prov.katam.totalArea, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Produksi</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.prov.katam.estimatedProduction, 0) }} ton</ion-note>
+                      </ion-item>
+                      @if (tab4Data.prov.katam.plantingStartDate) {
+                        <ion-item>
+                          <ion-label>Mulai Tanam</ion-label>
+                          <ion-note slot="end">{{ tab4Data.prov.katam.plantingStartDate }}</ion-note>
+                        </ion-item>
+                      }
+                    </ion-list>
+                  </div>
+                </ion-accordion>
+              }
+              @if (tab4Data.nasional && shouldShowSummaryLevel('nasional')) {
+                <ion-accordion value="nasional">
+                  <ion-item slot="header" color="light">
+                    <ion-icon name="globe" slot="start"></ion-icon>
+                    <ion-label>Indonesia</ion-label>
+                  </ion-item>
+                  <div class="ion-padding" slot="content">
+                    <ion-list>
+                      <ion-item>
+                        <ion-label>Total LBS</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.nasional.siscrop.totalLBS, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.nasional.siscrop.totalHarvestForecast, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Total Luas Panen</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.nasional.katam.totalArea, 0) }} ha</ion-note>
+                      </ion-item>
+                      <ion-item>
+                        <ion-label>Estimasi Produksi</ion-label>
+                        <ion-note slot="end">{{ formatNumber(tab4Data.nasional.katam.estimatedProduction, 0) }} ton</ion-note>
+                      </ion-item>
+                      @if (tab4Data.nasional.katam.plantingStartDate) {
+                        <ion-item>
+                          <ion-label>Mulai Tanam</ion-label>
+                          <ion-note slot="end">{{ tab4Data.nasional.katam.plantingStartDate }}</ion-note>
+                        </ion-item>
+                      }
+                    </ion-list>
+                  </div>
+                </ion-accordion>
+              }
+            </ion-accordion-group>
+            @if (!tab4Data.desa && !tab4Data.kabu && !tab4Data.prov && !tab4Data.nasional) {
+              <ion-item>
+                <ion-label class="ion-text-center">
+                  <p>Pilih lokasi pada peta untuk melihat data</p>
+                </ion-label>
+              </ion-item>
+            }
+          }
+        </ion-card-content>
+      </ion-card>
+      </div>
+    </ion-tab>
+    <ion-tab-bar slot="bottom">
+      <ion-tab-button tab="siscrop" (click)="selectedTab = 'siscrop'">
+        <ion-icon name="eye"></ion-icon>
+        <ion-label>Monitoring</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="katam" (click)="selectedTab = 'katam'">
+        <ion-icon name="calendar"></ion-icon>
+        <ion-label>Perencanaan</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="sifortuna" (click)="selectedTab = 'sifortuna'">
+        <ion-icon name="bar-chart"></ion-icon>
+        <ion-label>Optimasi</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="summary" (click)="selectedTab = 'summary'">
+        <ion-icon name="albums"></ion-icon>
+        <ion-label>Summary</ion-label>
+      </ion-tab-button>
+    </ion-tab-bar>
+  </ion-tabs>
+</ng-template>

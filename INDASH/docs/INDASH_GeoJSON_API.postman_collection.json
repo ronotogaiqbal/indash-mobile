@@ -1,0 +1,493 @@
+{
+	"info": {
+		"_postman_id": "indash-geojson-api-v1",
+		"name": "INDASH GeoJSON API",
+		"description": "API untuk mengakses data GeoJSON polygon (kecamatan, desa, lahan) untuk aplikasi INDASH mobile dan web.\n\n## Base URL\n- Production: `https://integrasi.brmpkementan.id`\n- Development: `http://202.155.94.128/indash`\n\n## Authentication\nTidak memerlukan authentication.\n\n## Response Format\nSemua response dalam format JSON dengan struktur:\n```json\n{\n  \"status\": \"success\" | \"error\",\n  \"data\": [...] | {...},\n  \"message\": \"...\"\n}\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://integrasi.brmpkementan.id",
+			"type": "string"
+		},
+		{
+			"key": "apiPath",
+			"value": "/geojson-api.php",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Info & List",
+			"description": "Endpoint untuk mendapatkan informasi API dan daftar data yang tersedia",
+			"item": [
+				{
+					"name": "Get API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}",
+							"host": ["{{baseUrl}}{{apiPath}}"]
+						},
+						"description": "Mendapatkan informasi API dan daftar endpoint yang tersedia."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}{{apiPath}}"
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"INDASH GeoJSON API\",\n  \"version\": \"1.0.0\",\n  \"endpoints\": {\n    \"getKecamatan\": \"Get all kecamatan boundaries\",\n    \"getKecamatanById\": \"Get kecamatan by KDCPUM (id parameter)\",\n    \"getDesa\": \"Get desa boundaries by kecamatan (kdcpum parameter)\",\n    \"getLahan\": \"Get lahan boundaries by kecamatan (kdcpum parameter)\",\n    \"getByBounds\": \"Get kecamatan within bounds (minLat, minLng, maxLat, maxLng)\",\n    \"getByLocation\": \"Get kecamatan & desa containing GPS point (lat, lng) - for mobile\",\n    \"listKecamatan\": \"List all kecamatan IDs\",\n    \"listDesa\": \"List all available desa files\",\n    \"listLahan\": \"List all available lahan files\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "List Kecamatan IDs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=listKecamatan",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "listKecamatan",
+									"description": "Action type"
+								}
+							]
+						},
+						"description": "Mendapatkan daftar semua ID kecamatan (KDCPUM) yang tersedia."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"status\": \"success\",\n  \"count\": 5557,\n  \"data\": [\"110102\", \"110103\", \"110104\", \"...\"]\n}"
+						}
+					]
+				},
+				{
+					"name": "List Desa Files",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=listDesa",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "listDesa",
+									"description": "Action type"
+								}
+							]
+						},
+						"description": "Mendapatkan daftar semua file desa yang tersedia (berdasarkan KDCPUM)."
+					},
+					"response": []
+				},
+				{
+					"name": "List Lahan Files",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=listLahan",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "listLahan",
+									"description": "Action type"
+								}
+							]
+						},
+						"description": "Mendapatkan daftar semua file lahan yang tersedia (berdasarkan KDCPUM)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Kecamatan",
+			"description": "Endpoint untuk mengakses data polygon kecamatan",
+			"item": [
+				{
+					"name": "Get All Kecamatan",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getKecamatan",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getKecamatan",
+									"description": "Action type"
+								}
+							]
+						},
+						"description": "Mendapatkan semua boundary kecamatan dalam format GeoJSON FeatureCollection.\n\n⚠️ **Warning**: Response size besar (~8MB). Gunakan `simplify=true` untuk mengurangi ukuran."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Kecamatan (Simplified)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getKecamatan&simplify=true&precision=4",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getKecamatan",
+									"description": "Action type"
+								},
+								{
+									"key": "simplify",
+									"value": "true",
+									"description": "Reduce coordinate precision"
+								},
+								{
+									"key": "precision",
+									"value": "4",
+									"description": "Decimal places (default: 4)"
+								}
+							]
+						},
+						"description": "Mendapatkan semua boundary kecamatan dengan koordinat yang disederhanakan untuk mengurangi ukuran response."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Kecamatan by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getKecamatanById&id=110102",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getKecamatanById",
+									"description": "Action type"
+								},
+								{
+									"key": "id",
+									"value": "110102",
+									"description": "KDCPUM (6 digit kode kecamatan)"
+								}
+							]
+						},
+						"description": "Mendapatkan boundary satu kecamatan berdasarkan KDCPUM.\n\n**Format ID**: 6 digit (contoh: 110102, 320101)"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n    {\n      \"type\": \"Feature\",\n      \"properties\": { \"KDCPUM\": \"110102\" },\n      \"geometry\": {\n        \"type\": \"Polygon\",\n        \"coordinates\": [[[97.31, 3.07], ...]]\n      }\n    }\n  ]\n}"
+						},
+						{
+							"name": "Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"body": "{\n  \"status\": \"error\",\n  \"message\": \"Kecamatan with ID '999999' not found\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Desa",
+			"description": "Endpoint untuk mengakses data polygon desa",
+			"item": [
+				{
+					"name": "Get Desa by Kecamatan",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getDesa&kdcpum=110102",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getDesa",
+									"description": "Action type"
+								},
+								{
+									"key": "kdcpum",
+									"value": "110102",
+									"description": "KDCPUM (6 digit kode kecamatan)"
+								}
+							]
+						},
+						"description": "Mendapatkan semua boundary desa dalam satu kecamatan.\n\n**Response**: GeoJSON FeatureCollection dengan property `ID_DESA` (10 digit)."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"type\": \"FeatureCollection\",\n  \"name\": \"desa_110102\",\n  \"features\": [\n    {\n      \"type\": \"Feature\",\n      \"properties\": { \"ID_DESA\": \"1101022013\" },\n      \"geometry\": { \"type\": \"Polygon\", \"coordinates\": [...] }\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Desa by Kecamatan (Simplified)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getDesa&kdcpum=110102&simplify=true&precision=3",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getDesa",
+									"description": "Action type"
+								},
+								{
+									"key": "kdcpum",
+									"value": "110102",
+									"description": "KDCPUM (6 digit kode kecamatan)"
+								},
+								{
+									"key": "simplify",
+									"value": "true",
+									"description": "Reduce coordinate precision"
+								},
+								{
+									"key": "precision",
+									"value": "3",
+									"description": "Decimal places (3 = ~100m accuracy)"
+								}
+							]
+						},
+						"description": "Mendapatkan boundary desa dengan koordinat yang disederhanakan.\n\nPrecision guide:\n- 4 = ~10m accuracy\n- 3 = ~100m accuracy\n- 2 = ~1km accuracy"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lahan",
+			"description": "Endpoint untuk mengakses data polygon lahan pertanian",
+			"item": [
+				{
+					"name": "Get Lahan by Kecamatan",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getLahan&kdcpum=110102",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getLahan",
+									"description": "Action type"
+								},
+								{
+									"key": "kdcpum",
+									"value": "110102",
+									"description": "KDCPUM (6 digit kode kecamatan)"
+								}
+							]
+						},
+						"description": "Mendapatkan semua boundary lahan pertanian dalam satu kecamatan.\n\n**Response**: GeoJSON FeatureCollection dengan property `ID_LAHAN`."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lahan by Kecamatan (Simplified)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getLahan&kdcpum=110102&simplify=true&precision=4",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getLahan",
+									"description": "Action type"
+								},
+								{
+									"key": "kdcpum",
+									"value": "110102",
+									"description": "KDCPUM (6 digit kode kecamatan)"
+								},
+								{
+									"key": "simplify",
+									"value": "true",
+									"description": "Reduce coordinate precision"
+								},
+								{
+									"key": "precision",
+									"value": "4",
+									"description": "Decimal places"
+								}
+							]
+						},
+						"description": "Mendapatkan boundary lahan dengan koordinat yang disederhanakan."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Location Based (Mobile)",
+			"description": "Endpoint berbasis lokasi GPS untuk aplikasi mobile",
+			"item": [
+				{
+					"name": "Get Polygon by GPS Location",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getByLocation&lat=3.1&lng=97.35",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getByLocation",
+									"description": "Action type"
+								},
+								{
+									"key": "lat",
+									"value": "3.1",
+									"description": "Latitude dari GPS device"
+								},
+								{
+									"key": "lng",
+									"value": "97.35",
+									"description": "Longitude dari GPS device"
+								}
+							]
+						},
+						"description": "🎯 **Endpoint utama untuk Mobile App**\n\nMendapatkan kecamatan dan desa yang mengandung titik GPS.\n\nGunakan koordinat dari `Geolocation.getCurrentPosition()` di Capacitor/Cordova."
+					},
+					"response": [
+						{
+							"name": "Found - Kecamatan & Desa",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"status\": \"success\",\n  \"location\": { \"lat\": 3.1, \"lng\": 97.35 },\n  \"kecamatan\": {\n    \"kdcpum\": \"110102\",\n    \"geometry\": {\n      \"type\": \"Polygon\",\n      \"coordinates\": [[[97.31, 3.07], ...]]\n    }\n  },\n  \"desa\": {\n    \"id_desa\": \"1101022020\",\n    \"geometry\": {\n      \"type\": \"Polygon\",\n      \"coordinates\": [[[97.35, 3.09], ...]]\n    }\n  }\n}"
+						},
+						{
+							"name": "Not Found - Outside Coverage",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"No kecamatan found at this location\",\n  \"location\": { \"lat\": 0, \"lng\": 0 },\n  \"data\": null\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Polygons by Map Bounds",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getByBounds&minLat=3.0&minLng=97.0&maxLat=4.0&maxLng=98.0",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getByBounds",
+									"description": "Action type"
+								},
+								{
+									"key": "minLat",
+									"value": "3.0",
+									"description": "Batas bawah latitude (south)"
+								},
+								{
+									"key": "minLng",
+									"value": "97.0",
+									"description": "Batas kiri longitude (west)"
+								},
+								{
+									"key": "maxLat",
+									"value": "4.0",
+									"description": "Batas atas latitude (north)"
+								},
+								{
+									"key": "maxLng",
+									"value": "98.0",
+									"description": "Batas kanan longitude (east)"
+								}
+							]
+						},
+						"description": "Mendapatkan semua kecamatan yang berada dalam batas peta (map bounds).\n\nGunakan bounds dari `map.getBounds()` di Leaflet:\n```javascript\nconst bounds = map.getBounds();\nconst sw = bounds.getSouthWest();\nconst ne = bounds.getNorthEast();\n// minLat=sw.lat, minLng=sw.lng, maxLat=ne.lat, maxLng=ne.lng\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Polygons by Map Bounds (Simplified)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPath}}?action=getByBounds&minLat=3.0&minLng=97.0&maxLat=4.0&maxLng=98.0&simplify=true&precision=4",
+							"host": ["{{baseUrl}}{{apiPath}}"],
+							"query": [
+								{
+									"key": "action",
+									"value": "getByBounds",
+									"description": "Action type"
+								},
+								{
+									"key": "minLat",
+									"value": "3.0",
+									"description": "Batas bawah latitude"
+								},
+								{
+									"key": "minLng",
+									"value": "97.0",
+									"description": "Batas kiri longitude"
+								},
+								{
+									"key": "maxLat",
+									"value": "4.0",
+									"description": "Batas atas latitude"
+								},
+								{
+									"key": "maxLng",
+									"value": "98.0",
+									"description": "Batas kanan longitude"
+								},
+								{
+									"key": "simplify",
+									"value": "true",
+									"description": "Reduce coordinate precision"
+								},
+								{
+									"key": "precision",
+									"value": "4",
+									"description": "Decimal places"
+								}
+							]
+						},
+						"description": "Mendapatkan kecamatan dalam bounds dengan koordinat yang disederhanakan.\n\n✅ **Recommended untuk mobile** - ukuran response lebih kecil."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

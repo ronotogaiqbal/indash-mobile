@@ -1,0 +1,52 @@
+<ion-content style="height: 100%">
+  <!-- Right panel with proper positioning -->
+  <app-side-panel
+    position="right"
+    [panelWidth]="'300px'"
+    [backgroundColor]="'rgba(200,200,200,0.8)'"
+    [(isCollapsed)]="panelCollapsedRight"
+    [(isEnabled)]="panelEnabledRight"
+  >
+    <div class="panel-content">
+      <h3>Right Panel</h3>
+      <p>Content for right panel</p>
+    </div>
+  </app-side-panel>
+
+  <ion-card style="height: 100%; width: 100%; margin: 0%">
+    <ion-card-header style="text-align: center">
+      <ion-card-subtitle>Awesome Subtitle</ion-card-subtitle>
+      <ion-card-title>Awesome Title</ion-card-title>
+    </ion-card-header>
+    <ion-card-content
+      style="background-color: cornflowerblue; height: 100%; padding: 20px"
+    >
+      <!-- Left panel with proper positioning -->
+      <app-side-panel
+        position="left"
+        [panelWidth]="'300px'"
+        [backgroundColor]="'rgba(255,255,255,0.8)'"
+        [(isCollapsed)]="panelCollapsedLeft"
+        [(isEnabled)]="panelEnabledLeft"
+      >
+        <div class="panel-content">
+          <h3>Left Panel</h3>
+          <p>Content for left panel</p>
+        </div>
+      </app-side-panel>
+      <!-- Bottom panel with proper positioning -->
+      <app-side-panel
+        position="bottom"
+        [panelHeight]="'250px'"
+        [backgroundColor]="'#e0e0e0'"
+        [(isCollapsed)]="panelCollapsedBottom"
+        [(isEnabled)]="panelEnabledBottom"
+      >
+        <div class="panel-content">
+          <h3>Bottom Panel</h3>
+          <p>Content for bottom panel</p>
+        </div>
+      </app-side-panel>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

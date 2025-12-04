@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">INDASH</string>
+    <string name="title_activity_main">INDASH</string>
+    <string name="package_name">id.brmpkementan.indash</string>
+    <string name="custom_url_scheme">id.brmpkementan.indash</string>
+</resources>

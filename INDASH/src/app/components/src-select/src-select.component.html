@@ -1,0 +1,36 @@
+<ion-modal [isOpen]="isOpen" (didPresent)="onDidPresent()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar [color]="color">
+        <ion-buttons slot="start">
+          <ion-button (click)="cancel()">Batal </ion-button>
+        </ion-buttons>
+        <ion-title>{{ title }}</ion-title>
+        @if (multiple) {
+        <ion-buttons slot="end">
+          <ion-button (click)="multiSelected()">OK </ion-button>
+        </ion-buttons>
+        }
+      </ion-toolbar>
+      <ion-toolbar>
+        <ion-searchbar
+          placeholder="Kata kunci"
+          (ionInput)="filterData($event)"
+          debounce="712"
+          #searchBar
+        ></ion-searchbar>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        @for (item of filtered; track item) {
+        <ion-item (click)="itemSelected()">
+          <ion-checkbox [(ngModel)]="item.selected">
+            {{ leaf(item) }}
+          </ion-checkbox>
+        </ion-item>
+        }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>

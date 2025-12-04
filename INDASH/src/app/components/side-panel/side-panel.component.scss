@@ -1,0 +1,227 @@
+.side-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.left {
+  height: 100%;
+}
+
+.right {
+  right: 0;
+  height: 100%;
+}
+
+.bottom {
+  bottom: 0;
+  width: 100%;
+}
+
+.collapsed {
+  transform: translateX(-100%);
+}
+
+.right.collapsed {
+  transform: translateX(100%);
+}
+
+.bottom.collapsed {
+  transform: translateY(100%);
+}
+
+.toggle-button {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background-color: #ff8c42;
+  color: #ffffff;
+  cursor: pointer;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(255, 140, 66, 0.5);
+  animation: pulse 2s infinite;
+
+  &:hover {
+    background-color: #ff7028;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.7);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .arrow-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  // Position variants
+  &.left {
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &.right {
+    right: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &.bottom {
+    left: 50%;
+    bottom: -18px;
+    transform: translateX(-50%);
+
+    .arrow-icon {
+      transform: rotate(-90deg);
+    }
+
+    &.collapsed .arrow-icon {
+      transform: rotate(90deg);
+    }
+  }
+
+  // Arrow direction logic
+  // Button class "right" = panel kiri (button di sisi kanan panel)
+  // Button class "left" = panel kanan (button di sisi kiri panel)
+  // Default icon: chevron-forward-outline (points right →)
+
+  // Panel KIRI (button.right):
+  // - expanded → panah ke kiri ← (tutup) → scaleX(-1)
+  // - collapsed → panah ke kanan → (buka) → default (none)
+
+  // Panel KANAN (button.left):
+  // - expanded → panah ke kanan → (tutup) → default (none)
+  // - collapsed → panah ke kiri ← (buka) → scaleX(-1)
+
+  &.right:not(.collapsed) .arrow-icon {
+    transform: scaleX(-1);  // Panel kiri expanded, panah kiri
+  }
+
+  &.left.collapsed .arrow-icon {
+    transform: scaleX(-1);  // Panel kanan collapsed, panah kiri
+  }
+}
+
+// Pulse animation keyframes
+@keyframes pulse {
+  0% {
+    box-shadow: 0 3px 8px rgba(255, 140, 66, 0.5);
+  }
+  50% {
+    box-shadow: 0 3px 12px rgba(255, 140, 66, 0.8);
+  }
+  100% {
+    box-shadow: 0 3px 8px rgba(255, 140, 66, 0.5);
+  }
+}
+
+// Respect user's motion preferences
+@media (prefers-reduced-motion: reduce) {
+  .toggle-button {
+    animation: none;
+  }
+}
+
+.panel-content {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+}
+
+// ============================================================================
+// BOTTOM SHEET MODE STYLES
+// ============================================================================
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  will-change: height, transform;
+
+  .panel-content {
+    height: calc(100% - 28px); // Account for drag handle
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.bottom-sheet-collapsed {
+  .panel-content {
+    overflow: hidden;
+  }
+}
+
+.bottom-sheet-half,
+.bottom-sheet-full {
+  .panel-content {
+    overflow-y: auto;
+  }
+}
+
+// Drag handle
+.drag-handle {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+  border-radius: 16px 16px 0 0;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.drag-indicator {
+  width: 40px;
+  height: 4px;
+  background-color: #d0d0d0;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+
+  .drag-handle:hover &,
+  .drag-handle:active & {
+    background-color: #a0a0a0;
+  }
+}
+
+// Bottom sheet state specific styles
+.bottom-sheet-collapsed {
+  .drag-indicator {
+    background-color: #ff8c42;
+  }
+}

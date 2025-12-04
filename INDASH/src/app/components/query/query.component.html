@@ -1,0 +1,52 @@
+<div class="query-container">
+  <h2>SQL Query Executor</h2>
+
+  <textarea
+    [(ngModel)]="apiURL"
+    placeholder="Enter your database URL here..."
+    class="db-url-input"
+  ></textarea>
+  <textarea
+    [(ngModel)]="sqlQuery"
+    placeholder="Enter your SQL SELECT query here..."
+    rows="5"
+    class="query-input"
+  >
+  </textarea>
+
+  <button (click)="executeQuery()" [disabled]="isLoading" class="execute-btn">
+    {{ isLoading ? "Executing..." : "Execute Query" }}
+  </button>
+
+  @if (error) {
+  <div class="error">
+    {{ error }}
+  </div>
+  } @if (results && results.length > 0) {
+  <div class="results">
+    <h3>Results ({{ results.length }} records)</h3>
+    <table>
+      <thead>
+        <tr>
+          @for (key of getKeys(results[0]); track key) {
+          <th>{{ key }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of results; track row) {
+        <tr>
+          @for (key of getKeys(row); track key) {
+          <td>{{ row[key] }}</td>
+          }
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  } @if (isLoading) {
+  <div class="loading">Executing query...</div>
+
+  }
+</div>

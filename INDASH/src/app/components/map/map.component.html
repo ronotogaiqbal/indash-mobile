@@ -1,0 +1,33 @@
+<div id="leafletMap" class="map-container"></div>
+
+<!-- GeoJSON Loading Indicator -->
+@if (geoJsonLoading) {
+  <div class="map-loading-indicator">
+    <ion-spinner name="crescent"></ion-spinner>
+    <span>Memuat peta...</span>
+  </div>
+}
+
+<!-- Geolocation FAB Button: Fixed to bottom right of the map container -->
+<ion-fab vertical="top" horizontal="end" slot="fixed" class="map-buttons">
+  <ion-fab-button (click)="locateUser()" color="secondary" size="small">
+    <ion-icon name="locate-outline"></ion-icon>
+  </ion-fab-button>
+  <ion-fab-button
+    (click)="srcSelectSingle.open()"
+    color="secondary"
+    size="small"
+  >
+    <ion-icon name="search-outline"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+<app-src-select
+  title="Pencarian Data"
+  color="dark"
+  [data]="adminData"
+  itemTextField="NAMA"
+  [multiple]="false"
+  (selectedItems)="selectChanged($event)"
+  #srcSelectSingle
+>
+</app-src-select>

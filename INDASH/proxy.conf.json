@@ -1,0 +1,29 @@
+{
+  "/api": {
+    "target": "https://siaptanam.brmpkementan.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api": "/api.php"
+    },
+    "logLevel": "debug"
+  },
+  "/scs1": {
+    "target": "https://scs1.brmpkementan.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/scs1": "/api.php"
+    },
+    "logLevel": "debug"
+  },
+  "/sifortuna": {
+    "target": "https://sifortuna.brmpkementan.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/sifortuna": "/api.php"
+    },
+    "logLevel": "debug"
+  }
+}
