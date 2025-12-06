@@ -8,7 +8,6 @@ import {
   locateOutline,
   searchOutline
 } from 'ionicons/icons';
-import MiniMap from 'leaflet-minimap';
 import { SrcSelectComponent } from '../src-select/src-select.component';
 import { SqlQueryService, QueryResponse } from '../../api/sql-query.service';
 import { CurrentIdService } from 'src/app/current-id';
@@ -28,7 +27,6 @@ type OverlayLayer = 'katam' | 'siscrop' | 'sifortuna';
 })
 export class MapComponent implements AfterViewInit {
   private map: L.Map | undefined;
-  private miniMap: MiniMap | undefined;
 
   // --- Layer Definitions ---
   private baseLayers: { [key: string]: L.TileLayer } = {};
@@ -130,7 +128,6 @@ export class MapComponent implements AfterViewInit {
     // This allows the browser to render the UI first before loading heavy resources
     const deferredInit = () => {
       console.log('[MAP] Deferred initialization starting');
-      this.addMiniMap();
       this.forceMapUpdate();
 
       // Load admin data first (lightweight)
@@ -446,33 +443,6 @@ export class MapComponent implements AfterViewInit {
       this.tile96,
     ]);
     this.overLayers['SISCROP'] = groupTiles;
-  }
-
-  // add inset map
-
-  private addMiniMap(): void {
-    if (!this.map) return;
-    var osm2 = new L.TileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-    );
-    this.miniMap = new MiniMap(osm2, {
-      //zoomLevelFixed: 6,
-      zoomLevelOffset: -6,
-      position: 'bottomleft',
-      width: 250,
-      height: 150,
-    });
-
-    this.map.addControl(this.miniMap);
-
-    // Use a small delay to ensure the container is created
-    setTimeout(() => {
-      const miniMapContainer = this.miniMap?.getContainer();
-      if (miniMapContainer) {
-        miniMapContainer.style.border = '1px solid black';
-        miniMapContainer.style.boxShadow = '0 0 10px rgba(0,0,0,0.8)';
-      }
-    }, 100);
   }
 
   // load geojson layer

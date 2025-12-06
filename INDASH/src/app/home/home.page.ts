@@ -66,7 +66,8 @@ import {
   RightPanelState,
   DataAvailabilityInfo,
   LocationLevel,
-  Tab3IrrigationData
+  Tab3IrrigationData,
+  MobileLocationInfoData
 } from '../models/right-panel.models';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -111,6 +112,12 @@ export class HomePage implements AfterViewInit, OnInit, OnDestroy {
   isMobile = false;
   bottomSheetState: BottomSheetState = 'collapsed';
   showMobileInfoModal = false;
+
+  // Mobile location info panel states
+  showMobileLocationPanel = false;
+  mobileLocationPanelState: BottomSheetState = 'collapsed';
+  mobileLocationInfo: MobileLocationInfoData | null = null;
+  mobileLocationLoading = false;
 
   // Loading states for inline spinners
   initialDataLoading = true;
@@ -490,9 +497,18 @@ export class HomePage implements AfterViewInit, OnInit, OnDestroy {
         this.loadRightPanelData(locationID);
         // Buka panel saat lokasi dipilih
         this.openPanelsOnLocationSelect();
+
+        // Trigger mobile location panel on mobile devices
+        if (this.isMobile) {
+          this.onMapLocationClick(locationID);
+        }
       } else {
         console.log('[RIGHT PANEL] Clearing data, invalid ID:', locationID);
         this.clearRightPanelData();
+        // Close mobile location panel if open
+        if (this.showMobileLocationPanel) {
+          this.closeMobileLocationPanel();
+        }
       }
     });
   }
@@ -1612,5 +1628,68 @@ export class HomePage implements AfterViewInit, OnInit, OnDestroy {
 
   onBottomSheetStateChange(state: BottomSheetState): void {
     this.bottomSheetState = state;
+  }
+
+  // ============================================================================
+  // MOBILE LOCATION INFO PANEL
+  // ============================================================================
+
+  /**
+   * Handle map location click for mobile - shows location info panel
+   * Called when a map feature is clicked on mobile
+   * Logic:
+   * - Lahan (ID >= 13): Full detail
+   * - Desa (ID >= 10, < 13): Summary only
+   * - Kecamatan (ID >= 6, < 10): Summary only
+   * - Prov/Kabu (< 6): Don't show mobile panel
+   */
+  onMapLocationClick(locationId: string): void {
+    if (!this.isMobile) return;
+
+    const idLength = locationId.length;
+
+    // Only show for keca, desa, lahan levels
+    if (idLength < 6) {
+      return;
+    }
+
+    this.mobileLocationLoading = true;
+    this.showMobileLocationPanel = true;
+    this.mobileLocationPanelState = 'half';
+
+    const tahun = this.latest?.TAHUN?.toString() || '2025';
+    const musim = this.latest?.MUSIM?.toString() || '1';
+
+    this.rightPanelDataService.fetchMobileLocationInfo(locationId, tahun, musim).subscribe({
+      next: (data) => {
+        this.mobileLocationInfo = data;
+        this.mobileLocationLoading = false;
+      },
+      error: (err) => {
+        console.error('[MobileLocationPanel] Error:', err);
+        this.mobileLocationLoading = false;
+        this.mobileLocationInfo = null;
+      }
+    });
+  }
+
+  /**
+   * Close mobile location panel
+   */
+  closeMobileLocationPanel(): void {
+    this.showMobileLocationPanel = false;
+    this.mobileLocationPanelState = 'collapsed';
+    this.mobileLocationInfo = null;
+  }
+
+  /**
+   * Handler for mobile location panel state change
+   */
+  onMobileLocationPanelStateChange(state: BottomSheetState): void {
+    this.mobileLocationPanelState = state;
+    if (state === 'collapsed') {
+      // Close panel when collapsed
+      this.closeMobileLocationPanel();
+    }
   }
 }

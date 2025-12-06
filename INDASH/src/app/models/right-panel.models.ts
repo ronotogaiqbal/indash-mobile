@@ -288,3 +288,56 @@ export interface LocationInfo {
   level: LocationLevel;
   suffix: string;  // 'PROV', 'KABU', 'KECA', 'DESA', 'LAHAN'
 }
+
+// ============================================================================
+// MOBILE LOCATION INFO PANEL
+// ============================================================================
+
+export type MobileLocationLevel = 'lahan' | 'desa' | 'keca';
+
+export interface MobileLocationInfoData {
+  level: MobileLocationLevel;
+  locationId: string;
+
+  // Common fields (all levels)
+  desaName: string;
+  kecamatanName?: string;
+  lbs: number;  // Luas Baku Sawah (ha)
+
+  // Summary fields (desa/keca)
+  summary?: {
+    jumlahLahan?: number;    // for desa: count of lahan
+    jumlahDesa?: number;     // for keca: count of desa
+    totalLBS: number;
+  };
+
+  // Full detail fields (lahan only)
+  fullDetail?: {
+    tanggalTanam: string;           // "Awal April", "Tengah Mei", etc.
+    komoditas: string;              // "Padi", "Jagung", etc.
+
+    // Defisit Irigasi per Dasarian (from t2_katam tables)
+    defisitIrigasi: Array<{
+      jadwal: string;               // "Awal April"
+      deficit: number;              // mm
+    }>;
+
+    // Proyeksi Hujan
+    proyeksiHujan: {
+      category: string;             // "Normal", "Tinggi", "Rendah"
+      probability: number;          // percentage
+    };
+
+    // Dosis NPK (from tab2Data.inputs.fertilizer.npk / totalArea)
+    dosisNPK: number;               // kg/ha
+
+    // Kebutuhan Alsintan
+    alsintan: {
+      tr2BajakSingkal: number;
+      tr2BajakRotari: number;
+      combineHarvester: number;
+      mistBlower: number;
+      drone: number;
+    };
+  };
+}
