@@ -11,7 +11,9 @@ import {
   LocationInfo,
   LocationLevel,
   DataAvailabilityInfo,
-  Tab3IrrigationData
+  Tab3IrrigationData,
+  MobileLocationInfoData,
+  MobileLocationLevel
 } from '../models/right-panel.models';
 
 /**
@@ -1861,5 +1863,283 @@ export class RightPanelDataService {
     const PUMP_CAPACITY = 1.5; // liter/second
     const debit = this.calculateIrrigationDebit(irr);
     return Math.max(1, Math.ceil(debit / PUMP_CAPACITY));
+  }
+
+  // ============================================================================
+  // MOBILE LOCATION INFO PANEL
+  // ============================================================================
+
+  /**
+   * Fetch mobile location info based on level
+   * - Lahan (ID >= 13): Full detail from KATAM + irrigation data
+   * - Desa (ID = 10): Summary only
+   * - Keca (ID = 6): Summary only
+   */
+  fetchMobileLocationInfo(
+    locationId: string,
+    tahun: string,
+    musim: string
+  ): Observable<MobileLocationInfoData | null> {
+    if (!locationId) {
+      return of(null);
+    }
+
+    const idLength = locationId.length;
+    let level: MobileLocationLevel;
+
+    if (idLength >= 13) {
+      level = 'lahan';
+    } else if (idLength >= 10) {
+      level = 'desa';
+    } else if (idLength >= 6) {
+      level = 'keca';
+    } else {
+      // Prov/Kabu level - not supported for mobile panel
+      return of(null);
+    }
+
+    if (level === 'lahan') {
+      return this.fetchLahanFullDetail(locationId, tahun, musim);
+    } else if (level === 'desa') {
+      return this.fetchDesaSummary(locationId, tahun, musim);
+    } else {
+      return this.fetchKecaSummary(locationId, tahun, musim);
+    }
+  }
+
+  /**
+   * Fetch full detail for Lahan level
+   */
+  private fetchLahanFullDetail(
+    locationId: string,
+    tahun: string,
+    musim: string
+  ): Observable<MobileLocationInfoData | null> {
+    const desaId = locationId.substring(0, 10);
+    const kecaId = locationId.substring(0, 6);
+
+    return forkJoin({
+      katam: this.fetchKatamPlanning(locationId, tahun, musim),
+      irrigation: this.fetchTab3IrrigationData(locationId, tahun, musim),
+      desaName: this.fetchLocationName(desaId),
+      kecaName: this.fetchLocationName(kecaId)
+    }).pipe(
+      map(({ katam, irrigation, desaName, kecaName }) => {
+        const katamData = katam.data;
+
+        if (!katamData) {
+          return null;
+        }
+
+        const totalArea = katamData.crops?.totalArea || 0;
+
+        // Calculate NPK dose per hectare
+        const npkTotal = katamData.inputs?.fertilizer?.npk || 0;
+        const dosisNPK = totalArea > 0 ? Math.round(npkTotal / totalArea) : 250;
+
+        // Calculate alsintan requirements
+        const alsintan = this.calculateAlsintanForMobile(totalArea);
+
+        // Get defisit irigasi from irrigation data
+        const defisitIrigasi = (irrigation?.tableData || []).map(d => ({
+          jadwal: d.jadwal,
+          deficit: d.deficit
+        }));
+
+        return {
+          level: 'lahan' as MobileLocationLevel,
+          locationId: locationId,
+          desaName: desaName || 'N/A',
+          kecamatanName: kecaName ?? undefined,
+          lbs: totalArea,
+          fullDetail: {
+            tanggalTanam: katamData.planting?.startDate || '-',
+            komoditas: katamData.crops?.recommended?.[0] || 'Padi',
+            defisitIrigasi: defisitIrigasi,
+            proyeksiHujan: {
+              category: 'Normal',
+              probability: 10
+            },
+            dosisNPK: dosisNPK,
+            alsintan: alsintan
+          }
+        };
+      }),
+      catchError((error) => {
+        console.error('[MobileLocation] Lahan fetch error:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Fetch full detail for Desa level (same data as lahan)
+   */
+  private fetchDesaSummary(
+    locationId: string,
+    tahun: string,
+    musim: string
+  ): Observable<MobileLocationInfoData | null> {
+    const kecaId = locationId.substring(0, 6);
+
+    // Query KATAM aggregated data for desa
+    const katamQuery =
+      `SELECT MIN(DST) as DST, POLA, SUM(LBS) as totalLBS, SUM(PA_NPK_ton) as totalNPK ` +
+      `FROM v2_katam_summary ` +
+      `WHERE ID_LAHAN LIKE '${locationId}%' ` +
+      `AND TAHUN = '${tahun}' AND SEA = '${musim}'`;
+
+    // Query irrigation data (use kecamatan level)
+    const irrigationQuery =
+      `SELECT DSR, DST, IRR, WDQ ` +
+      `FROM t2_katam_keca ` +
+      `WHERE ID_KECA = '${kecaId}' ` +
+      `AND TAHUN = '${tahun}' AND SEA = '${musim}' AND MT = 1 ` +
+      `ORDER BY DSR`;
+
+    return forkJoin({
+      katam: this.sqlQueryService.executeSiaptanamQuery(katamQuery),
+      irrigation: this.sqlQueryService.executeSiaptanamQuery(irrigationQuery),
+      desaName: this.fetchLocationName(locationId),
+      kecaName: this.fetchLocationName(kecaId)
+    }).pipe(
+      map(({ katam, irrigation, desaName, kecaName }) => {
+        const katamData = katam.data?.[0];
+        const totalLBS = parseFloat(katamData?.totalLBS) || 0;
+        const totalNPK = parseFloat(katamData?.totalNPK) || 0;
+
+        // Calculate defisit irigasi from irrigation data (only where WDQ > 0)
+        const defisitIrigasi = (irrigation.data || [])
+          .filter((row: any) => parseFloat(row.WDQ) > 0 && parseFloat(row.WDQ) < 100)
+          .map((row: any) => ({
+            jadwal: this.convertDasarianToLabel(parseInt(row.DSR)),
+            deficit: Math.round(parseFloat(row.WDQ))
+          }));
+
+        return {
+          level: 'desa' as MobileLocationLevel,
+          locationId: locationId,
+          desaName: desaName || 'N/A',
+          kecamatanName: kecaName ?? undefined,
+          lbs: totalLBS,
+          fullDetail: {
+            tanggalTanam: this.convertDasarianToLabel(parseInt(katamData?.DST) || 1),
+            komoditas: this.getKomoditasFromPola(katamData?.POLA) || 'Padi',
+            defisitIrigasi,
+            proyeksiHujan: { category: 'Normal', probability: 10 },
+            dosisNPK: totalLBS > 0 ? Math.round((totalNPK * 1000) / totalLBS) : 0,
+            alsintan: this.calculateAlsintanForMobile(totalLBS)
+          }
+        };
+      }),
+      catchError((error) => {
+        console.error('[MobileLocation] Desa fetch error:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Convert dekad number (1-36) to label like "Awal April"
+   */
+  private convertDasarianToLabel(dsr: number): string {
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const monthIndex = Math.floor((dsr - 1) / 3);
+    const dasarianInMonth = ((dsr - 1) % 3);
+    const prefix = ['Awal', 'Tengah', 'Akhir'][dasarianInMonth];
+    return `${prefix} ${months[monthIndex] || 'Januari'}`;
+  }
+
+  /**
+   * Get komoditas name from POLA pattern (e.g., "1-1-0" means Padi-Padi-Bera)
+   */
+  private getKomoditasFromPola(pola: string): string {
+    if (!pola) return 'Padi';
+    const firstCrop = pola.split('-')[0];
+    if (firstCrop === '1') return 'Padi';
+    if (firstCrop === '2') return 'Jagung';
+    if (firstCrop === '3') return 'Kedelai';
+    return 'Padi';
+  }
+
+  /**
+   * Fetch summary for Kecamatan level
+   */
+  private fetchKecaSummary(
+    locationId: string,
+    tahun: string,
+    musim: string
+  ): Observable<MobileLocationInfoData | null> {
+    // Query to get kecamatan summary (count desa, total LBS)
+    // v2_katam_summary uses ID_LAHAN (13 digit), so we filter by prefix
+    // ID_LAHAN format: 13 digit, first 6 = kecamatan, first 10 = desa
+    const summaryQuery =
+      `SELECT COUNT(DISTINCT SUBSTRING(ID_LAHAN, 1, 10)) as jumlahDesa, SUM(LBS) as totalLBS ` +
+      `FROM v2_katam_summary ` +
+      `WHERE ID_LAHAN LIKE '${locationId}%' ` +
+      `AND TAHUN = '${tahun}' ` +
+      `AND SEA = '${musim}'`;
+
+    return forkJoin({
+      summary: this.sqlQueryService.executeSiaptanamQuery(summaryQuery),
+      kecaName: this.fetchLocationName(locationId)
+    }).pipe(
+      map(({ summary, kecaName }) => {
+        const data = summary.data?.[0];
+
+        return {
+          level: 'keca' as MobileLocationLevel,
+          locationId: locationId,
+          desaName: kecaName || 'N/A',  // For keca level, show kecamatan name as primary
+          kecamatanName: kecaName ?? undefined,
+          lbs: parseFloat(data?.totalLBS) || 0,
+          summary: {
+            jumlahDesa: parseInt(data?.jumlahDesa) || 0,
+            totalLBS: parseFloat(data?.totalLBS) || 0
+          }
+        };
+      }),
+      catchError((error) => {
+        console.error('[MobileLocation] Keca fetch error:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Fetch location name from t2_admin
+   */
+  private fetchLocationName(locationId: string): Observable<string | null> {
+    const query = `SELECT NAMA FROM t2_admin WHERE ID_ADMIN = '${locationId}'`;
+
+    return this.sqlQueryService.executeSiaptanamQuery(query).pipe(
+      map((response: QueryResponse) => {
+        if (response.status === 'success' && response.data?.[0]) {
+          return response.data[0].NAMA;
+        }
+        return null;
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  /**
+   * Calculate alsintan requirements for mobile panel
+   */
+  private calculateAlsintanForMobile(totalArea: number): {
+    tr2BajakSingkal: number;
+    tr2BajakRotari: number;
+    combineHarvester: number;
+    mistBlower: number;
+    drone: number;
+  } {
+    return {
+      tr2BajakSingkal: Math.ceil(totalArea * 6.313131313 / 100),
+      tr2BajakRotari: Math.ceil(totalArea * 4.166666667 / 100),
+      combineHarvester: Math.ceil(totalArea * 0.925925926 / 100),
+      mistBlower: Math.ceil(totalArea * 0.520833333 / 100),
+      drone: Math.ceil(totalArea * 0.416666667 / 100)
+    };
   }
 }

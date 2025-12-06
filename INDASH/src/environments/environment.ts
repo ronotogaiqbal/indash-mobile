@@ -6,10 +6,10 @@ export const environment = {
   production: false,
   showDebugTools: true,  // Show debug buttons in development
   apiUrls: {
-    // Use local proxy paths to avoid CORS issues in development
-    siaptanam: '/api',
-    scs1: '/scs1',
-    sifortuna: '/sifortuna'
+    // Use full URLs for mobile testing (proxy doesn't work with external IP access)
+    siaptanam: 'https://siaptanam.brmpkementan.id/api.php',
+    scs1: 'https://scs1.brmpkementan.id/api.php',
+    sifortuna: 'https://sifortuna.brmpkementan.id/api.php'
   }
 };
 

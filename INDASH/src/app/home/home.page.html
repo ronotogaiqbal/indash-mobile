@@ -195,19 +195,151 @@
       </ng-template>
     </ion-modal>
 
-    <!-- Bottom Sheet for Right Panel Content -->
-    <app-side-panel
-      class="mobile-bottom-sheet"
-      mode="bottom-sheet"
-      [bottomSheetState]="bottomSheetState"
-      (bottomSheetStateChange)="onBottomSheetStateChange($event)"
-      [collapsedHeight]="'70px'"
-      [halfHeight]="'50vh'"
-      [fullHeight]="'85vh'"
-      [backgroundColor]="'rgba(255,255,255,0.6)'"
-    >
-      <ng-container *ngTemplateOutlet="rightPanelContent"></ng-container>
-    </app-side-panel>
+    <!-- Mobile Location Info Bottom Sheet -->
+    @if (showMobileLocationPanel) {
+      <app-side-panel
+        class="mobile-location-sheet"
+        mode="bottom-sheet"
+        [bottomSheetState]="mobileLocationPanelState"
+        (bottomSheetStateChange)="onMobileLocationPanelStateChange($event)"
+        [collapsedHeight]="'100px'"
+        [halfHeight]="'60vh'"
+        [fullHeight]="'90vh'"
+        [backgroundColor]="'rgba(255,255,255,0.95)'"
+      >
+        <!-- Header with close button -->
+        <div class="location-panel-header">
+          <h3>
+            @if (mobileLocationInfo?.level === 'lahan') {
+              Info Lahan
+            } @else if (mobileLocationInfo?.level === 'desa') {
+              Info Desa
+            } @else {
+              Info Kecamatan
+            }
+          </h3>
+          <ion-button fill="clear" size="small" (click)="closeMobileLocationPanel()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </div>
+
+        @if (mobileLocationLoading) {
+          <div class="loading-container">
+            <ion-spinner></ion-spinner>
+            <p>Memuat data lokasi...</p>
+          </div>
+        }
+        @else if (mobileLocationInfo) {
+          <div class="location-panel-content">
+            <!-- Common Info (all levels) -->
+            <ion-list lines="full">
+              <ion-item>
+                <ion-label>
+                  @if (mobileLocationInfo.level === 'keca') {
+                    Kecamatan
+                  } @else {
+                    Desa
+                  }
+                </ion-label>
+                <ion-note slot="end">{{ mobileLocationInfo.desaName }}</ion-note>
+              </ion-item>
+              <ion-item>
+                <ion-label>LBS</ion-label>
+                <ion-note slot="end">{{ formatNumber(mobileLocationInfo.lbs, 2) }} ha</ion-note>
+              </ion-item>
+            </ion-list>
+
+            <!-- LAHAN/DESA FULL DETAIL -->
+            @if ((mobileLocationInfo.level === 'lahan' || mobileLocationInfo.level === 'desa') && mobileLocationInfo.fullDetail) {
+              <ion-list lines="full">
+                <ion-item>
+                  <ion-label>Tanggal Tanam</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.tanggalTanam }}</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Komoditas</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.komoditas }}</ion-note>
+                </ion-item>
+              </ion-list>
+
+              <!-- Defisit Irigasi -->
+              @if (mobileLocationInfo.fullDetail.defisitIrigasi.length > 0) {
+                <h4 class="section-subtitle">Dasarian Defisit Irigasi:</h4>
+                <ion-list lines="none" class="deficit-list">
+                  @for (item of mobileLocationInfo.fullDetail.defisitIrigasi; track item.jadwal) {
+                    <ion-item>
+                      <ion-label>{{ item.jadwal }}</ion-label>
+                      <ion-note slot="end">({{ formatNumber(item.deficit, 0) }} mm)</ion-note>
+                    </ion-item>
+                  }
+                </ion-list>
+              }
+
+              <ion-list lines="full">
+                <ion-item>
+                  <ion-label>Proyeksi Hujan</ion-label>
+                  <ion-note slot="end">
+                    {{ mobileLocationInfo.fullDetail.proyeksiHujan.category }}
+                    ({{ mobileLocationInfo.fullDetail.proyeksiHujan.probability }}%)
+                  </ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Dosis NPK</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.dosisNPK }} kg/ha</ion-note>
+                </ion-item>
+              </ion-list>
+
+              <!-- Kebutuhan Alsintan -->
+              <h4 class="section-subtitle">Kebutuhan Alsintan:</h4>
+              <ion-list lines="full" class="alsintan-list">
+                <ion-item>
+                  <ion-label>TR2 (Bajak Singkal)</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.alsintan.tr2BajakSingkal }} unit</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>TR2 (Bajak Rotari)</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.alsintan.tr2BajakRotari }} unit</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Combine Harvester</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.alsintan.combineHarvester }} unit</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Mist Blower</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.alsintan.mistBlower }} unit</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>Drone</ion-label>
+                  <ion-note slot="end">{{ mobileLocationInfo.fullDetail.alsintan.drone }} unit</ion-note>
+                </ion-item>
+              </ion-list>
+            }
+
+            <!-- DESA/KECA SUMMARY -->
+            @else if (mobileLocationInfo.summary) {
+              <ion-list lines="full">
+                @if (mobileLocationInfo.level === 'desa' && mobileLocationInfo.summary.jumlahLahan) {
+                  <ion-item>
+                    <ion-label>Jumlah Lahan</ion-label>
+                    <ion-note slot="end">{{ mobileLocationInfo.summary.jumlahLahan }}</ion-note>
+                  </ion-item>
+                }
+                @if (mobileLocationInfo.level === 'keca' && mobileLocationInfo.summary.jumlahDesa) {
+                  <ion-item>
+                    <ion-label>Jumlah Desa</ion-label>
+                    <ion-note slot="end">{{ mobileLocationInfo.summary.jumlahDesa }}</ion-note>
+                  </ion-item>
+                }
+                <ion-item>
+                  <ion-label>Total LBS</ion-label>
+                  <ion-note slot="end">{{ formatNumber(mobileLocationInfo.summary.totalLBS, 2) }} ha</ion-note>
+                </ion-item>
+              </ion-list>
+            }
+          </div>
+        }
+      </app-side-panel>
+    }
   }
 
   <!-- Map Component (always visible) -->
