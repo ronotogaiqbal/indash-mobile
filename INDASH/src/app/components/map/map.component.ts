@@ -706,7 +706,7 @@ export class MapComponent implements AfterViewInit {
     console.log('[MAP] loadAdmin() called');
     this.adminData = [];
 
-    // Load only kecamatan (fast query), then generate parent levels in client
+    // Load only kecamatan - no provinsi/kabupaten navigation for mobile
     this.sqlQuery =
       'SELECT DISTINCT `t2_admin`.`ID_ADMIN` AS `ID_ADMIN`, `t2_admin`.`NAMA` AS `NAMA` ' +
       'FROM (`t2_admin` LEFT JOIN `t2_kecamatan` ON (`t2_admin`.`ID_ADMIN` = `t2_kecamatan`.`ID_KECA`)) ' +
@@ -723,64 +723,16 @@ export class MapComponent implements AfterViewInit {
           const kecamatanData = response.data;
           console.log('[MAP] Processing', kecamatanData.length, 'kecamatan records');
 
-          // Generate parent levels (provinsi, kabupaten) from kecamatan IDs
-          const parentMap = new Map<string, {ID_ADMIN: string, NAMA: string}>();
-
+          // Add label to kecamatan names
           kecamatanData.forEach((kec: any) => {
-            const id = kec.ID_ADMIN;
-
-            // Add provinsi (2 digits)
-            const provId = id.substring(0, 2);
-            if (!parentMap.has(provId)) {
-              parentMap.set(provId, {ID_ADMIN: provId, NAMA: provId}); // Will fetch name later
-            }
-
-            // Add kabupaten (4 digits)
-            const kabId = id.substring(0, 4);
-            if (!parentMap.has(kabId)) {
-              parentMap.set(kabId, {ID_ADMIN: kabId, NAMA: kabId}); // Will fetch name later
-            }
-
-            // Add kecamatan with label
             kec.NAMA = `[KEC] ${kec.NAMA}`;
           });
 
-          // Fetch names for parent levels
-          const parentIds = Array.from(parentMap.keys());
-          if (parentIds.length > 0) {
-            const nameQuery = `SELECT ID_ADMIN, NAMA FROM t2_admin WHERE ID_ADMIN IN (${parentIds.map(id => `'${id}'`).join(',')})`;
+          // Use kecamatan data directly (no provinsi/kabupaten)
+          this.adminData = kecamatanData;
+          this.adminData.sort((a: any, b: any) => a.ID_ADMIN.localeCompare(b.ID_ADMIN));
 
-            this.sqlQueryService.executeQuery(nameQuery, this.apiURL).subscribe({
-              next: (nameResponse: QueryResponse) => {
-                if (nameResponse.status === 'success') {
-                  // Update parent names
-                  nameResponse.data.forEach((row: any) => {
-                    const label = row.ID_ADMIN.length === 2 ? '[PROV]' : '[KAB]';
-                    parentMap.set(row.ID_ADMIN, {
-                      ID_ADMIN: row.ID_ADMIN,
-                      NAMA: `${label} ${row.NAMA}`
-                    });
-                  });
-
-                  // Combine all data: parents + kecamatan
-                  this.adminData = [...Array.from(parentMap.values()), ...kecamatanData];
-                  this.adminData.sort((a: any, b: any) => a.ID_ADMIN.localeCompare(b.ID_ADMIN));
-
-                  console.log('[MAP] Loaded admin data:', this.adminData.length, 'locations');
-                  console.log('[MAP] Provinsi:', Array.from(parentMap.values()).filter((x: any) => x.ID_ADMIN.length === 2).length);
-                  console.log('[MAP] Kabupaten:', Array.from(parentMap.values()).filter((x: any) => x.ID_ADMIN.length === 4).length);
-                  console.log('[MAP] Kecamatan:', kecamatanData.length);
-                }
-              },
-              error: (err) => {
-                console.error('[MAP] Error loading parent names:', err);
-                // Use data without labels
-                this.adminData = [...Array.from(parentMap.values()), ...kecamatanData];
-              }
-            });
-          } else {
-            this.adminData = kecamatanData;
-          }
+          console.log('[MAP] Loaded admin data:', this.adminData.length, 'kecamatan');
         } else {
           this.error =
             response.error || response.message || 'Query execution failed';
@@ -820,17 +772,12 @@ export class MapComponent implements AfterViewInit {
 
       // Set ID_ADMIN_KECA based on ID length
       const idLength = this.ID_ADMIN.length;
-      if (idLength >= 6) {
-        this.ID_ADMIN_KECA = this.ID_ADMIN.substring(0, 6);
-      } else {
-        // For provinsi (2) and kabupaten (4), use the ID itself
-        this.ID_ADMIN_KECA = this.ID_ADMIN;
-      }
+      this.ID_ADMIN_KECA = this.ID_ADMIN.substring(0, 6);
 
       console.log('[MAP] Selected:', {
         ID_ADMIN: this.ID_ADMIN,
         NAMA: this.NAMA_ADMIN,
-        LEVEL: idLength === 2 ? 'Provinsi' : idLength === 4 ? 'Kabupaten' : idLength === 6 ? 'Kecamatan' : 'Desa'
+        LEVEL: idLength === 6 ? 'Kecamatan' : 'Desa'
       });
 
       this.zoomSelected();
@@ -849,7 +796,7 @@ export class MapComponent implements AfterViewInit {
 
     console.log('[MAP] zoomSelected:', this.ID_ADMIN, 'length:', idLength);
 
-    // Handle different administrative levels
+    // Handle kecamatan and desa levels only (no provinsi/kabupaten)
     if (idLength === 6) {
       // Kecamatan: use existing layer
       targetLayer = this.keca_layer.getLayer(idAdmin);
@@ -858,41 +805,6 @@ export class MapComponent implements AfterViewInit {
         targetLayer.fire('click');
       } else {
         console.warn('[MAP] Kecamatan layer not found:', idAdmin);
-      }
-    } else if (idLength === 2 || idLength === 4) {
-      // Provinsi or Kabupaten: find all child kecamatan and zoom to their bounds
-      const childLayers: any[] = [];
-
-      this.keca_layer.eachLayer((layer: any) => {
-        const layerId = String(layer._leaflet_id);
-        // Check if this kecamatan belongs to the selected provinsi/kabupaten
-        if (layerId.startsWith(this.ID_ADMIN)) {
-          childLayers.push(layer);
-        }
-      });
-
-      if (childLayers.length > 0) {
-        // Calculate combined bounds of all child layers
-        const bounds = L.latLngBounds([]);
-        childLayers.forEach(layer => {
-          bounds.extend(layer.getBounds());
-        });
-
-        // Zoom to combined bounds
-        const zoomLevel = idLength === 2 ? 8 : 10; // Provinsi: 8, Kabupaten: 10
-        this.map?.fitBounds(bounds);
-        this.map?.setZoom(zoomLevel);
-
-        // Update current ID to show provinsi/kabupaten data (not first kecamatan)
-        this.update_ID(this.ID_ADMIN);
-
-        // Load SISCROP data for this location
-        this.loadSiscropData(this.ID_ADMIN);
-
-        console.log('[MAP] Zoomed to', idLength === 2 ? 'provinsi' : 'kabupaten',
-                    'with', childLayers.length, 'kecamatan');
-      } else {
-        console.warn('[MAP] No child kecamatan found for:', this.ID_ADMIN);
       }
     } else if (idLength === 10) {
       // Desa: try to find in dsGroup, or fall back to parent kecamatan

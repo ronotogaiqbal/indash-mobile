@@ -249,9 +249,15 @@
               </ion-item>
             </ion-list>
 
-            <!-- LAHAN/DESA FULL DETAIL -->
-            @if ((mobileLocationInfo.level === 'lahan' || mobileLocationInfo.level === 'desa') && mobileLocationInfo.fullDetail) {
+            <!-- LAHAN/DESA/KECA FULL DETAIL -->
+            @if (mobileLocationInfo.fullDetail) {
               <ion-list lines="full">
+                @if (mobileLocationInfo.level === 'keca' && mobileLocationInfo.summary?.jumlahDesa) {
+                  <ion-item>
+                    <ion-label>Jumlah Desa</ion-label>
+                    <ion-note slot="end">{{ mobileLocationInfo.summary?.jumlahDesa }}</ion-note>
+                  </ion-item>
+                }
                 <ion-item>
                   <ion-label>Tanggal Tanam</ion-label>
                   <ion-note slot="end">{{ mobileLocationInfo.fullDetail.tanggalTanam }}</ion-note>

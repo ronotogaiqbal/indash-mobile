@@ -2064,7 +2064,7 @@ export class RightPanelDataService {
   }
 
   /**
-   * Fetch summary for Kecamatan level
+   * Fetch full detail for Kecamatan level (now includes fullDetail like desa/lahan)
    */
   private fetchKecaSummary(
     locationId: string,
@@ -2072,8 +2072,6 @@ export class RightPanelDataService {
     musim: string
   ): Observable<MobileLocationInfoData | null> {
     // Query to get kecamatan summary (count desa, total LBS)
-    // v2_katam_summary uses ID_LAHAN (13 digit), so we filter by prefix
-    // ID_LAHAN format: 13 digit, first 6 = kecamatan, first 10 = desa
     const summaryQuery =
       `SELECT COUNT(DISTINCT SUBSTRING(ID_LAHAN, 1, 10)) as jumlahDesa, SUM(LBS) as totalLBS ` +
       `FROM v2_katam_summary ` +
@@ -2081,22 +2079,58 @@ export class RightPanelDataService {
       `AND TAHUN = '${tahun}' ` +
       `AND SEA = '${musim}'`;
 
+    // Query KATAM data for kecamatan (DST, POLA, NPK)
+    const katamQuery =
+      `SELECT DST, POLA, LBS, PA_NPK_ton ` +
+      `FROM v2_katam_summary_keca ` +
+      `WHERE ID_KECA = '${locationId}' ` +
+      `AND TAHUN = '${tahun}' AND SEA = '${musim}'`;
+
+    // Query per-dasarian irrigation data from t2_katam_keca
+    const irrigationQuery =
+      `SELECT DSR, DST, IRR, WDQ ` +
+      `FROM t2_katam_keca ` +
+      `WHERE ID_KECA = '${locationId}' ` +
+      `AND TAHUN = '${tahun}' AND SEA = '${musim}' AND MT = 1 ` +
+      `ORDER BY DSR`;
+
     return forkJoin({
       summary: this.sqlQueryService.executeSiaptanamQuery(summaryQuery),
+      katam: this.sqlQueryService.executeSiaptanamQuery(katamQuery),
+      irrigation: this.sqlQueryService.executeSiaptanamQuery(irrigationQuery),
       kecaName: this.fetchLocationName(locationId)
     }).pipe(
-      map(({ summary, kecaName }) => {
-        const data = summary.data?.[0];
+      map(({ summary, katam, irrigation, kecaName }) => {
+        const summaryData = summary.data?.[0];
+        const katamData = katam.data?.[0];
+        const totalLBS = parseFloat(summaryData?.totalLBS) || parseFloat(katamData?.LBS) || 0;
+        const totalNPK = parseFloat(katamData?.PA_NPK_ton) || 0;
+
+        // Calculate defisit irigasi from irrigation data (only where WDQ > 0)
+        const defisitIrigasi = (irrigation.data || [])
+          .filter((row: any) => parseFloat(row.WDQ) > 0 && parseFloat(row.WDQ) < 100)
+          .map((row: any) => ({
+            jadwal: this.convertDasarianToLabel(parseInt(row.DSR)),
+            deficit: Math.round(parseFloat(row.WDQ))
+          }));
 
         return {
           level: 'keca' as MobileLocationLevel,
           locationId: locationId,
-          desaName: kecaName || 'N/A',  // For keca level, show kecamatan name as primary
+          desaName: kecaName || 'N/A',
           kecamatanName: kecaName ?? undefined,
-          lbs: parseFloat(data?.totalLBS) || 0,
+          lbs: totalLBS,
           summary: {
-            jumlahDesa: parseInt(data?.jumlahDesa) || 0,
-            totalLBS: parseFloat(data?.totalLBS) || 0
+            jumlahDesa: parseInt(summaryData?.jumlahDesa) || 0,
+            totalLBS: totalLBS
+          },
+          fullDetail: {
+            tanggalTanam: this.convertDasarianToLabel(parseInt(katamData?.DST) || 1),
+            komoditas: this.getKomoditasFromPola(katamData?.POLA) || 'Padi',
+            defisitIrigasi,
+            proyeksiHujan: { category: 'Normal', probability: 10 },
+            dosisNPK: totalLBS > 0 ? Math.round((totalNPK * 1000) / totalLBS) : 0,
+            alsintan: this.calculateAlsintanForMobile(totalLBS)
           }
         };
       }),
