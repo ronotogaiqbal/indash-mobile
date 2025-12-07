@@ -8,6 +8,8 @@ import {
   locateOutline,
   searchOutline
 } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 import { SrcSelectComponent } from '../src-select/src-select.component';
 import { SqlQueryService, QueryResponse } from '../../api/sql-query.service';
 import { CurrentIdService } from 'src/app/current-id';
@@ -610,46 +612,96 @@ export class MapComponent implements AfterViewInit {
     });
   }
 
-  // --- GEOLOCATION METHODS (ADDED) ---
+  // --- GEOLOCATION METHODS ---
 
   /**
-   * Public method to trigger the browser's GPS request.
+   * Public method to trigger GPS location request.
+   * Uses Capacitor Geolocation for native platforms, Leaflet for web.
    */
-  public locateUser(): void {
-    if (this.map) {
-      // Clear previous location state
-      if (this.userLocationMarker) {
-        this.map.removeLayer(this.userLocationMarker);
-      }
-      if (this.userLocationCircle) {
-        this.map.removeLayer(this.userLocationCircle);
-      }
+  public async locateUser(): Promise<void> {
+    if (!this.map) return;
 
-      this.displayMessage('Memindai lokasi...');
-      // Start locating process. setView: true moves the map to the found location.
-      this.map.locate({
-        setView: true,
-        maxZoom: 16,
-        timeout: 10000,
-        enableHighAccuracy: true,
-      });
+    // Clear previous location state
+    if (this.userLocationMarker) {
+      this.map.removeLayer(this.userLocationMarker);
+    }
+    if (this.userLocationCircle) {
+      this.map.removeLayer(this.userLocationCircle);
+    }
+
+    this.displayMessage('Memindai lokasi...');
+
+    // Check if running on native platform (Android/iOS)
+    if (Capacitor.isNativePlatform()) {
+      await this.locateUserNative();
+    } else {
+      this.locateUserBrowser();
     }
   }
 
-  private onLocationFound(e: L.LocationEvent): void {
-    // Clear the message
-    this.displayMessage('Location found!');
+  /**
+   * Native platform geolocation using Capacitor Geolocation plugin.
+   * Handles runtime permission requests for Android 6.0+.
+   */
+  private async locateUserNative(): Promise<void> {
+    try {
+      // Check current permission status
+      let permission = await Geolocation.checkPermissions();
 
-    const radius = e.accuracy / 2;
-    const latlng = e.latlng;
+      // Request permission if not granted
+      if (permission.location !== 'granted') {
+        permission = await Geolocation.requestPermissions();
+        if (permission.location !== 'granted') {
+          this.displayMessage('Ijin lokasi ditolak.');
+          return;
+        }
+      }
 
-    // Add marker (now correctly displays the image)
+      // Get current position
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+      });
+
+      const latlng = L.latLng(position.coords.latitude, position.coords.longitude);
+      this.showUserLocation(latlng, position.coords.accuracy);
+    } catch (error: any) {
+      console.error('Geolocation error:', error);
+      let errorMessage = 'Tidak dapat mendeteksi lokasi.';
+      if (error.message) {
+        errorMessage += ` ${error.message}`;
+      }
+      this.displayMessage(errorMessage);
+    }
+  }
+
+  /**
+   * Browser-based geolocation using Leaflet's map.locate().
+   * Used for web platform.
+   */
+  private locateUserBrowser(): void {
+    this.map!.locate({
+      setView: true,
+      maxZoom: 16,
+      timeout: 10000,
+      enableHighAccuracy: true,
+    });
+  }
+
+  /**
+   * Display user location on map with marker and accuracy circle.
+   * Shared by both native and browser geolocation methods.
+   */
+  private showUserLocation(latlng: L.LatLng, accuracy: number): void {
+    const radius = accuracy / 2;
+
+    // Add marker at user location
     this.userLocationMarker = L.marker(latlng).addTo(this.map!);
     this.userLocationMarker
       .bindPopup(`Radius ${radius.toFixed(0)} meter`)
       .openPopup();
 
-    // Add circle to represent accuracy
+    // Add accuracy circle
     this.userLocationCircle = L.circle(latlng, {
       radius: radius,
       color: '#007bff',
@@ -658,10 +710,21 @@ export class MapComponent implements AfterViewInit {
       weight: 1,
     }).addTo(this.map!);
 
-    // Optionally fit the map bounds to the accuracy circle
+    // Fit map to accuracy circle bounds
     this.map?.fitBounds(this.userLocationCircle.getBounds());
+    this.displayMessage('Lokasi ditemukan!');
   }
 
+  /**
+   * Handler for Leaflet's locationfound event (browser mode).
+   */
+  private onLocationFound(e: L.LocationEvent): void {
+    this.showUserLocation(e.latlng, e.accuracy);
+  }
+
+  /**
+   * Handler for Leaflet's locationerror event (browser mode).
+   */
   private onLocationError(e: L.ErrorEvent): void {
     let errorMessage = 'Tidak dapat mendeteksi lokasi.';
     if (e.code === 1) {
