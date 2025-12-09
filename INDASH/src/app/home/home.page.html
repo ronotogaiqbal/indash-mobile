@@ -169,19 +169,12 @@
   <!-- MOBILE LAYOUT (< 768px) -->
   <!-- ============================================================================ -->
   @if (isMobile) {
-    <!-- FAB for Info Panel (replaces left panel) -->
-    <ion-fab vertical="top" horizontal="start" slot="fixed" class="mobile-info-fab">
-      <ion-fab-button size="small" color="primary" (click)="toggleMobileInfoModal()">
-        <ion-icon name="information-circle-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-
     <!-- Mobile Info Modal -->
     <ion-modal [isOpen]="showMobileInfoModal" (didDismiss)="showMobileInfoModal = false">
       <ng-template>
         <ion-header>
           <ion-toolbar color="primary">
-            <ion-title>Informasi Lokasi</ion-title>
+            <ion-title>Informasi Lahan</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showMobileInfoModal = false">
                 <ion-icon name="close"></ion-icon>
@@ -203,7 +196,7 @@
         [bottomSheetState]="mobileLocationPanelState"
         (bottomSheetStateChange)="onMobileLocationPanelStateChange($event)"
         [collapsedHeight]="'100px'"
-        [halfHeight]="'60vh'"
+        [halfHeight]="'45vh'"
         [fullHeight]="'90vh'"
         [backgroundColor]="'rgba(255,255,255,0.95)'"
       >
@@ -349,7 +342,7 @@
   }
 
   <!-- Map Component (always visible) -->
-  <app-map></app-map>
+  <app-map (infoButtonClicked)="toggleMobileInfoModal()"></app-map>
 </ion-content>
 
 <!-- Footer only on desktop -->
@@ -400,7 +393,7 @@
   <ion-card class="consolidated-left-panel mobile-card">
     <ion-card-header class="main-panel-header">
       <ion-card-title class="main-panel-title">
-        INFORMASI SIAP TANAM
+        INFORMASI LAHAN
       </ion-card-title>
     </ion-card-header>
 

@@ -92,9 +92,8 @@ import { ScreenService } from '../services/screen.service';
     IonList, IonItem, IonLabel, IonNote,
     IonTabs, IonTab, IonTabBar, IonTabButton,
     IonButton, IonButtons, IonIcon, IonSpinner, IonBadge,
-    IonFab, IonFabButton,
     IonModal, IonAccordion, IonAccordionGroup,
-    IonProgressBar, IonText,
+    IonProgressBar,
   ],
 })
 export class HomePage implements AfterViewInit, OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonSpinner, IonFab, IonFabButton, IonIcon } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
@@ -6,7 +6,8 @@ L.Icon.Default.imagePath = 'assets/';
 import { addIcons } from 'ionicons';
 import {
   locateOutline,
-  searchOutline
+  searchOutline,
+  informationCircleOutline
 } from 'ionicons/icons';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
@@ -28,6 +29,8 @@ type OverlayLayer = 'katam' | 'siscrop' | 'sifortuna';
   imports: [CommonModule, SrcSelectComponent, IonSpinner, IonFab, IonFabButton, IonIcon],
 })
 export class MapComponent implements AfterViewInit {
+  @Output() infoButtonClicked = new EventEmitter<void>();
+
   private map: L.Map | undefined;
 
   // --- Layer Definitions ---
@@ -118,7 +121,8 @@ export class MapComponent implements AfterViewInit {
   ) {
     addIcons({
       'locate-outline': locateOutline,
-      'search-outline': searchOutline
+      'search-outline': searchOutline,
+      'information-circle-outline': informationCircleOutline
     });
   }
 
@@ -982,5 +986,12 @@ export class MapComponent implements AfterViewInit {
       this.siscropAnalysis = null;
       this.siscropLoading = false;
     }
+  }
+
+  /**
+   * Emit event to parent component to toggle info modal
+   */
+  onInfoClick(): void {
+    this.infoButtonClicked.emit();
   }
 }
